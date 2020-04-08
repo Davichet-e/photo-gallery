@@ -1,9 +1,19 @@
 <template>
   <div id="wrap">
-    <b-nav pills class="mx-4 border border-secondary rounded">
-      <b-nav-item @click="handleActive('Photos')" :active="active === 'Photos'">Photos</b-nav-item>
-      <b-nav-item @click="handleActive('Users')" :active="active === 'Users'">Users</b-nav-item>
+    <b-nav tabs fill class="mx-4 rounded">
+      <b-nav-item
+        class="border-left border-bottom rounded-left"
+        @click="handleActive('photos')"
+        :active="active === 'photos'"
+      >Photos</b-nav-item>
+      <b-nav-item
+        class="border-bottom"
+        @click="handleActive('users')"
+        :active="active === 'users'"
+        active-class="active"
+      >Users</b-nav-item>
       <b-nav-item-dropdown
+        class="border-bottom border-right rounded-right"
         id="my-nav-dropdown"
         text="Sort by"
         toggle-class="nav-link-custom"
@@ -13,11 +23,25 @@
         <b-dropdown-item>Most Popular</b-dropdown-item>
       </b-nav-item-dropdown>
     </b-nav>
-    <div class="gallery-container">
+    <div :class="active === 'photos' ? 'gallery-container' : 'users-container'">
       <b-overlay v-for="(image, i) in images" :key="i" :show="loaded < 2" rounded="sm">
-        <a href="#" class="item">
+        <a v-show="active === 'photos'" href="#" class="item">
           <img :src="image" alt="image" @load="loaded++" />
         </a>
+
+        <b-card
+          v-show="active === 'users'"
+          :title="'User' + i"
+          overlay
+          :img-src="image"
+          img-alt="Image"
+          tag="article"
+          class="mb-2"
+        >
+          <div class="card-img-overlay d-flex flex-column">
+            <div class="mt-auto">{{ Math.floor(Math.random() * 100) }} photos uploaded</div>
+          </div>
+        </b-card>
       </b-overlay>
     </div>
     <section>
@@ -33,29 +57,65 @@ import Vue from "vue";
 @Component
 export default class New extends Vue {
   loaded = 0;
-  active = "Photos";
+  active = "photos";
   handleActive(id: string) {
     this.active = id;
   }
 
-  images: Array<string> = [
-    "https://picsum.photos/3000/1700",
-    "https://picsum.photos/3000/1500",
-    "https://picsum.photos/3000/1600",
-    "https://picsum.photos/3000/1700",
-    "https://picsum.photos/3200/1700",
-    "https://picsum.photos/3000/1702",
-    "https://picsum.photos/3000/1100",
-    "https://picsum.photos/3000/1300"
-  ];
+  get images(): Array<string> {
+    return this.active === "photos"
+      ? [
+          "", // "https://picsum.photos/3000/1700"
+          "", // "https://picsum.photos/3000/1500"
+          "", // "https://picsum.photos/3000/1600"
+          "", // "https://picsum.photos/3000/1700"
+          "", // "https://picsum.photos/3200/1700"
+          "", // "https://picsum.photos/3000/1702"
+          "", // "https://picsum.photos/3000/1100"
+          "" // "https://picsum.photos/3000/1300"
+        ]
+      : [
+          "", //"https://picsum.photos/600/300/?image=25",
+          "", //"https://picsum.photos/600/300/?image=24",
+          "", //"https://picsum.photos/3000/1700",
+          "", //"https://picsum.photos/3000/1500",
+          "", //"https://picsum.photos/3000/1600",
+          "", //"https://picsum.photos/3000/1700",
+          "", //"https://picsum.photos/3200/1700",
+          "", //"https://picsum.photos/3000/1702",
+          "", //"https://picsum.photos/3000/1100",
+          "" //"https://picsum.photos/3000/1300"
+        ];
+  }
 }
 </script>
 
 <style scoped>
+a {
+  color: whitesmoke;
+}
+
+a:hover {
+  color: rgb(104, 124, 120);
+}
+
 section {
   text-align: right;
   margin: 35px;
 }
+
+.users-container {
+  display: grid;
+  margin: 35px;
+  /* grid-auto-rows: 300px; */
+  grid-template-columns: repeat(4, 1fr);
+  grid-gap: 1rem;
+  grid-auto-flow: row dense;
+}
+.users-container article {
+  height: 200px;
+}
+
 .gallery-container {
   display: grid;
   margin: 35px;
@@ -64,6 +124,7 @@ section {
   grid-gap: 1rem;
   grid-auto-flow: row dense;
 }
+
 img {
   width: 100%;
   height: 100%;
@@ -71,13 +132,15 @@ img {
 }
 
 @media all and (min-width: 320px) {
-  #wrap > .gallery-container {
+  #wrap > .gallery-container,
+  #wrap > .users-container {
     grid-template-columns: 1fr;
   }
 }
 
 @media all and (min-width: 768px) {
-  #wrap > .gallery-container {
+  #wrap > .gallery-container,
+  #wrap > .users-container {
     grid-template-columns: 1fr 1fr;
   }
 }
@@ -85,6 +148,10 @@ img {
 @media all and (min-width: 1024px) {
   #wrap > .gallery-container {
     grid-template-columns: repeat(3, 1fr);
+  }
+
+  #wrap > .users-container {
+    grid-template-columns: repeat(6, 1fr);
   }
 
   .gallery-container *:nth-child(11n + 1) {

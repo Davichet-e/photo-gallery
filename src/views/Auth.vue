@@ -1,7 +1,7 @@
 <template>
   <transition name="fade">
-    <div id="wrap" :class="route === 'login' ? 'login' : 'signup'">
-      <section id="auth">
+    <div id="auth" :class="route === 'login' ? 'login' : 'signup'">
+      <main>
         <h4>{{ route.toUpperCase() }}</h4>
         <hr />
 
@@ -30,22 +30,23 @@
               <b-icon-lock-fill></b-icon-lock-fill>
             </b-input-group-append>
           </b-input-group>
-          <!-- <p>
-            <b-form-input class="input-password" placeholder="Password" type="password" required />
-            <span class="icon-password"></span>
-          </p>-->
+
           <b-form-checkbox
-            v-if="route === 'login'"
             id="remember-checkbox"
             class="text-light"
+            @click="state = null"
+            v-model="isClicked"
+            :state="state"
             switch
-          >Remember me</b-form-checkbox>
-          <b-form-checkbox v-else id="conditions-checkbox" :state="null" class="text-light" switch>
-            I agree to
-            <a href="#">terms of service</a>
+          >
+            <span v-if="route === 'login'">Remember me</span>
+
+            <span v-else>
+              I agree to
+              <a href="#">terms of service</a>
+            </span>
           </b-form-checkbox>
           <b-button type="submit" variant="light">{{ route === "sign up" ? "Sign Up" : "Login" }}</b-button>
-          <!-- <img src="../assets/mail.svg" alt="email-icon" height="50px" /> -->
         </b-form>
         <aside>
           <aside class="line">OR</aside>
@@ -60,7 +61,7 @@
             height="40px"
           />
         </a>
-      </section>
+      </main>
     </div>
   </transition>
 </template>
@@ -75,11 +76,13 @@ import "bootstrap-vue/dist/bootstrap-vue.css";
 export default class Auth extends Vue {
   @Prop() route!: string;
 
+  isClicked = false;
   state: boolean | null = null;
+
   routeGoogleImage: string = require("@/assets/sign-in-google/btn_google_signin_dark_normal_web.png");
 
-  onSumbit() {
-    //
+  onSubmit() {
+    if (!this.isClicked) this.state = false;
   }
 
   get googleImage(): string {
@@ -95,25 +98,23 @@ export default class Auth extends Vue {
 .login {
   background-image: url("https:///marvel-live.freetls.fastly.net/canvas/2020/2/3873225776594ff7aa5442658a7d4db8?quality=95&fake=.png");
 }
+
 .signup {
   background-image: url("../assets/sign-up-background.png");
 }
-#wrap {
+
+#auth {
   height: 100vh;
   width: 100vw;
   display: flex;
-
-  /* flex-direction: column; */
   justify-content: center;
   align-items: center;
-  /* background-image: url("https:///marvel-live.freetls.fastly.net/canvas/2020/2/3873225776594ff7aa5442658a7d4db8?quality=95&fake=.png"); */
   background-position-y: -150px;
   background-size: cover;
 }
 
-#auth {
+#auth > main {
   display: flex;
-  /* box-shadow: 3px 2px 5px 6px rgb(0, 0, 0); */
   flex-direction: column;
   justify-content: flex-start;
   align-items: center;
@@ -127,6 +128,15 @@ export default class Auth extends Vue {
 img {
   margin: 20px;
 }
+
+img:active {
+  border: none;
+}
+
+img:hover {
+  box-shadow: 0 8px 6px -6px black;
+}
+
 .auth-form {
   text-align: start;
   display: flex;
@@ -141,20 +151,25 @@ h4 {
   font-weight: 400;
   margin: 20px;
 }
+
 .custom-switch {
   font-size: 15px;
 }
+
 a.password-reset {
   font-size: 10px;
 }
+
 a {
   text-align: left;
   color: #4f81b3;
   text-decoration: none;
 }
+
 a:hover {
   text-decoration: underline;
 }
+
 hr {
   background-color: #bce9ec;
   width: 90%;
@@ -172,13 +187,16 @@ input:not([type="checkbox"]) {
 .auth-form .icon-username {
   background-image: url("../assets/user-icon.svg");
 }
+
 .auth-form .icon-email {
   margin-bottom: 0px;
   background-image: url("../assets/mail.svg");
 }
+
 .auth-form .icon-password {
   background-image: url("../assets/lock.svg");
 }
+
 .btn {
   margin: 10px;
   align-self: center;
@@ -195,6 +213,7 @@ aside {
   font-family: Arial, Helvetica, sans-serif;
   margin: 8px 0px 0px;
 }
+
 .line::before,
 .line::after {
   content: "";
