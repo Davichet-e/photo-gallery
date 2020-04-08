@@ -25,7 +25,7 @@ const routes = [
     // route level code-splitting
     // this generates a separate chunk (about.[hash].js) for this route
     // which is lazy-loaded when the route is visited.
-    component: () => import(/* webpackChunkName: "about" */ "../views/New.vue")
+    component: () => import(/* webpackChunkName: "new" */ "../views/New.vue")
   },
   {
     path: "/login",
@@ -34,7 +34,7 @@ const routes = [
     // route level code-splitting
     // this generates a separate chunk (about.[hash].js) for this route
     // which is lazy-loaded when the route is visited.
-    component: () => import(/* webpackChunkName: "about" */ "../views/Auth.vue")
+    component: () => import(/* webpackChunkName: "login" */ "../views/Auth.vue")
   },
   {
     path: "/signup",
@@ -43,14 +43,23 @@ const routes = [
     // route level code-splitting
     // this generates a separate chunk (about.[hash].js) for this route
     // which is lazy-loaded when the route is visited.
-    component: () => import(/* webpackChunkName: "about" */ "../views/Auth.vue")
-  }, {
+    component: () => import(/* webpackChunkName: "signup" */ "../views/Auth.vue")
+  },
+  {
     path: "/profile",
     name: "Profile",
     // route level code-splitting
     // this generates a separate chunk (about.[hash].js) for this route
     // which is lazy-loaded when the route is visited.
-    component: () => import(/* webpackChunkName: "about" */ "../views/Profile.vue")
+    component: () => import(/* webpackChunkName: "profile" */ "../views/Profile.vue")
+  },
+  {
+    path: "/images/:id",
+    name: "Image",
+    // route level code-splitting
+    // this generates a separate chunk (about.[hash].js) for this route
+    // which is lazy-loaded when the route is visited.
+    component: () => import(/* webpackChunkName: "profile" */ "../views/Image.vue")
   }
 ];
 
