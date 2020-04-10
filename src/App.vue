@@ -21,24 +21,23 @@ export default { components: { NavBar } };
 </script>
 
 <style>
-/* li > a[id|="__"] {
-  color: inherit;
-} */
 .border {
   border: 5px solid black;
 }
+
 /* Animations */
 .slide-enter-active,
 .slide-leave-active {
   transition: opacity 1s, transform 1s;
 }
+
 .slide-enter, .slide-leave-to /* .slide-leave-active below version 2.1.8 */ {
   opacity: 0;
   transform: translateX(-30%);
 }
 
 body {
-  font-family: "Josefin Sans", sans-serif;
-  background-color: #121212 !important;
+  /* font-family: "Josefin Sans", sans-serif; */
+  background-color: #04001d !important;
 }
 </style>

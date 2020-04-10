@@ -33,7 +33,6 @@
             @click="handleActivate(tag)"
             :key="tag"
             :variant="tags[tag] ? 'success': 'secondary'"
-            active-class="success"
           >{{ tag }}</b-badge>
         </div>
 
@@ -49,36 +48,42 @@
 
       <b-nav-item
         class="border-left border-bottom rounded-left"
-        @click="handleActive('my photos')"
-        :active="active === 'my photos'"
+        @click="handleActive('myphotos')"
+        :active="active === 'myphotos'"
+        to="/about/myphotos"
       >My Photos</b-nav-item>
 
       <b-nav-item
         class="border-right border-bottom rounded-right"
         @click="handleActive('settings')"
         :active="active === 'settings'"
+        to="/about/settings"
       >Settings</b-nav-item>
     </b-nav>
-    <div class="gallery-container">
+    <div :class="active ==='myphotos' ? 'gallery-container' : ''">
       <b-overlay v-for="(image, i) in images" :key="i" :show="loaded < 2" rounded="sm">
-        <a v-show="active === 'my photos'" href="#" class="item">
+        <a v-show="active === 'myphotos'" href="#" class="item">
           <img :src="image" alt="image" @load="loaded++" />
         </a>
       </b-overlay>
+      <h1 v-show="active === 'settings'" style="text-align: center; color: peru">HOLA GUAPETONA</h1>
     </div>
   </div>
 </template>
 
 <script lang="ts">
-import Component from "vue-class-component";
+import "reflect-metadata";
+
+import { Component, Vue, Prop } from "vue-property-decorator";
 import { BvModalEvent } from "bootstrap-vue";
-import Vue from "vue";
 
 @Component
 export default class About extends Vue {
+  @Prop({ default: "myphotos" }) readonly route!: string;
+
   loaded = 0;
   file: File | null = null;
-  active = "my photos";
+  active = this.route;
   tags: Record<string, boolean> = {
     dark: false,
     white: false,
@@ -118,6 +123,8 @@ export default class About extends Vue {
   }
 
   handleActive(id: string) {
+    console.log(this.route);
+
     this.active = id;
   }
 }
