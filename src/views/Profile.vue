@@ -1,60 +1,53 @@
 <template>
   <div>
-    <div id="wrap">
-      <h1>Name</h1>
-      <p>Lorem ipsum dolor, sit amet consectetur adipisicing elit. Blanditiis, quaerat?</p>
-      <b-icon-people-circle variant="light" class="h1" scale="2"></b-icon-people-circle>
-      <ul class="bottom-line">
-        <li>
-          <ul class="bottom-line-left"></ul>
-        </li>
-        <li>
-          <ul class="bottom-line-center">
-            <li>
-              <a href="#">
-                <b-icon-arrow-bar-up></b-icon-arrow-bar-up>
-              </a>
-            </li>
-            <li>
-              <a href="#">
-                <b-icon-heart-fill></b-icon-heart-fill>
-              </a>
-            </li>
-            <li>
-              <a href="#">
-                <b-icon-person-plus></b-icon-person-plus>
-              </a>
-            </li>
-            <li>
-              <a href="#">
-                <b-icon-download></b-icon-download>
-              </a>
-            </li>
-          </ul>
-        </li>
-        <li>
-          <ul class="bottom-line-right"></ul>
-        </li>
-      </ul>
+    <div id="profile">
+      <h1>{{ data.name }}</h1>
+      <p>{{ data.description }}</p>
+      <b-icon-people-circle variant="dark" class="h1" scale="2"></b-icon-people-circle>
+      <b-row class="w-100 mt-auto">
+        <b-col></b-col>
+        <b-col class="d-flex justify-content-center">
+          <div class="mx-3" v-b-tooltip.hover="'Images uploaded'">
+            <b-icon-card-image class="mr-1"></b-icon-card-image>
+            <small>{{ data.imagesUploaded }}</small>
+          </div>
+
+          <div class="mx-3" v-b-tooltip.hover="'Downloads'">
+            <b-icon-download class="mr-1"></b-icon-download>
+            <small>{{ data.downloads }}</small>
+          </div>
+
+          <div class="mx-3" v-b-tooltip.hover="'Comments'">
+            <b-icon-chat-dots-fill class="mr-1"></b-icon-chat-dots-fill>
+            <small>{{ data.comments }}</small>
+          </div>
+
+          <div class="mx-3" v-b-tooltip.hover="'Followers'">
+            <b-icon-people-fill class="mr-1"></b-icon-people-fill>
+            <small>{{ data.followers }}</small>
+          </div>
+        </b-col>
+        <b-col class="d-flex flex-row-reverse mb-3 mr-3">
+          <b-button pill size="sm" variant="success" class="ml-2">Donate</b-button>
+          <b-button pill size="sm" variant="info">Follow</b-button>
+        </b-col>
+      </b-row>
     </div>
-    <b-nav pills class="mx-4 border border-secondary rounded-bottom">
-      <b-nav-item @click="handleActive('photos')" :active="active === 'photos'">Photos</b-nav-item>
+    <b-nav
+      tabs
+      pills
+      align="center"
+      class="mx-4 pt-2 border border-top-0 border-secondary rounded-bottom"
+    >
+      <b-nav-item @click="handleActive('popular')" :active="active === 'popular'">Most Popular</b-nav-item>
+      <b-nav-item @click="handleActive('recent')" :active="active === 'recent'">Most Recent</b-nav-item>
       <b-nav-item @click="handleActive('about')" :active="active === 'about'">About Me</b-nav-item>
-      <b-nav-item-dropdown
-        id="my-nav-dropdown"
-        text="Sort by"
-        toggle-class="nav-link-custom"
-        center
-      >
-        <b-dropdown-item>Most Recents</b-dropdown-item>
-        <b-dropdown-item>Most Popular</b-dropdown-item>
-      </b-nav-item-dropdown>
     </b-nav>
     <div class="gallery-container">
       <b-overlay v-for="(image, i) in images" :key="i" :show="loaded < 2" rounded="sm">
-        <a href="#" class="item">
+        <router-link :to="'images/' + i" class="item">
           <img :src="image" alt="image" @load="loaded++" />
-        </a>
+        </router-link>
       </b-overlay>
     </div>
   </div>
@@ -66,8 +59,18 @@ import Vue from "vue";
 
 @Component
 export default class Profile extends Vue {
+  // Faked data
+  data = {
+    name: "Turno",
+    description:
+      "Lorem ipsum dolor, sit amet consectetur adipisicing elit. Blanditiis, quaerat?",
+    followers: Math.floor(Math.random() * 10000),
+    imagesUploaded: Math.floor(Math.random() * 10000),
+    downloads: Math.floor(Math.random() * 10000),
+    comments: Math.floor(Math.random() * 10000)
+  };
   loaded = 0;
-  active = "photos";
+  active = "popular";
   handleActive(id: string) {
     this.active = id;
   }
@@ -86,6 +89,12 @@ export default class Profile extends Vue {
 </script>
 
 <style scoped>
+b-column a {
+  color: teal;
+}
+.nav-link {
+  color: whitesmoke;
+}
 [class|="bottom-line"] {
   padding: 0;
   margin-top: auto;
@@ -107,7 +116,7 @@ p {
 a:hover {
   color: rgb(83, 83, 83);
 }
-#wrap {
+#profile {
   height: 300px;
   width: 100vw;
   background-image: url("https://picsum.photos/2000/1000/?blur=10");
@@ -121,7 +130,7 @@ a:hover {
 }
 h1 {
   font-style: bold;
-  color: white;
+  color: rgb(23, 49, 40);
 }
 .gallery-container {
   display: grid;
@@ -138,19 +147,19 @@ img {
 }
 
 @media all and (min-width: 320px) {
-  #wrap ~ .gallery-container {
+  #profile ~ .gallery-container {
     grid-template-columns: 1fr;
   }
 }
 
 @media all and (min-width: 768px) {
-  #wrap ~ .gallery-container {
+  #profile ~ .gallery-container {
     grid-template-columns: 1fr 1fr;
   }
 }
 
 @media all and (min-width: 1024px) {
-  #wrap ~ .gallery-container {
+  #profile ~ .gallery-container {
     grid-template-columns: repeat(3, 1fr);
   }
 

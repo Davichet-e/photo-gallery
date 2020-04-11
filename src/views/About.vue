@@ -1,6 +1,6 @@
 <template>
   <div class="about">
-    <b-nav tabs fill class="mx-4 rounded">
+    <b-nav tabs fill class="mx-4 rounded" small>
       <b-button v-b-modal.modal-center v-b-tooltip.bottom="'Upload photo'" variant="success">
         <b-icon-camera></b-icon-camera>
       </b-button>
@@ -30,16 +30,23 @@
         <div class="modal-tags">
           <b-badge
             v-for="(_i, tag) in tags"
-            @click="handleActivate(tag)"
             :key="tag"
-            :variant="tags[tag] ? 'success': 'secondary'"
+            @click="handleActivate(tag)"
+            class="mx-2 mt-2"
+            :variant="tags[tag] ? 'success' : 'secondary'"
           >{{ tag }}</b-badge>
+          <b-badge @click="addTag" class="mx-2 mt-2" variant="info">
+            <!-- TODO -->
+            <b-icon-plus></b-icon-plus>
+          </b-badge>
         </div>
 
         <template v-slot:modal-footer="{ ok }">
           <p class="tags-text mr-auto">
             By uploading it you accept our
-            <a href="#">Terms and Conditions</a>
+            <a
+              href="https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+            >Terms and Conditions</a>
           </p>
 
           <b-button size="sm" variant="success" @click="ok()">Upload</b-button>
@@ -54,17 +61,42 @@
       >My Photos</b-nav-item>
 
       <b-nav-item
+        class="border-bottom"
+        @click="handleActive('following')"
+        :active="active === 'following'"
+        to="/about/following"
+      >Following</b-nav-item>
+      <b-nav-item
         class="border-right border-bottom rounded-right"
         @click="handleActive('settings')"
         :active="active === 'settings'"
         to="/about/settings"
       >Settings</b-nav-item>
     </b-nav>
-    <div :class="active ==='myphotos' ? 'gallery-container' : ''">
+    <div
+      :class="{'gallery-container': active === 'myphotos', 'users-container': active === 'following'}"
+    >
       <b-overlay v-for="(image, i) in images" :key="i" :show="loaded < 2" rounded="sm">
-        <a v-show="active === 'myphotos'" href="#" class="item">
-          <img :src="image" alt="image" @load="loaded++" />
-        </a>
+        <router-link
+          v-show="active === 'myphotos' || active === 'following'"
+          :to="active === 'myphotos' ? '/images/' + i : '/profile'"
+          class="item"
+        >
+          <img v-show="active === 'myphotos'" :src="image" alt="image" @load="loaded++" />
+          <b-card
+            v-show="active === 'following'"
+            :title="'User' + i"
+            overlay
+            :img-src="image"
+            img-alt="Image"
+            tag="article"
+            class="mb-2"
+          >
+            <div class="card-img-overlay d-flex flex-column">
+              <div class="mt-auto">{{ Math.floor(Math.random() * 100) }} photos uploaded</div>
+            </div>
+          </b-card>
+        </router-link>
       </b-overlay>
       <h1 v-show="active === 'settings'" style="text-align: center; color: peru">HOLA GUAPETONA</h1>
     </div>
@@ -75,7 +107,6 @@
 import "reflect-metadata";
 
 import { Component, Vue, Prop } from "vue-property-decorator";
-import { BvModalEvent } from "bootstrap-vue";
 
 @Component
 export default class About extends Vue {
@@ -111,7 +142,7 @@ export default class About extends Vue {
     }
   }
 
-  handleUpload(_bvModalEvt: BvModalEvent) {
+  handleUpload(/* _bvModalEvt: BvModalEvent*/) {
     console.log(
       Object.entries(this.tags).forEach(([key, value]) => {
         if (value) console.log(key);
@@ -127,13 +158,18 @@ export default class About extends Vue {
 
     this.active = id;
   }
+
+  addTag() {
+    // TODO
+  }
 }
 </script>
 
 <style scoped>
-div.modal-tags {
+.modal-tags {
+  width: 100%;
   display: flex;
-  justify-content: space-evenly;
+  flex-wrap: wrap;
   margin-bottom: 5px;
 }
 
@@ -152,8 +188,16 @@ div > span:hover {
   cursor: pointer;
 }
 
-a {
-  color: white;
+.users-container {
+  display: grid;
+  margin: 35px;
+  grid-template-columns: repeat(6, 1fr);
+  grid-gap: 1rem;
+  grid-auto-flow: row dense;
+}
+
+.users-container article {
+  height: 200px;
 }
 
 .gallery-container {
@@ -172,25 +216,25 @@ img {
 }
 
 @media all and (min-width: 320px) {
-  #wrap > .gallery-container,
-  #wrap > .users-container {
+  #about > .gallery-container,
+  #about > .users-container {
     grid-template-columns: 1fr;
   }
 }
 
 @media all and (min-width: 768px) {
-  #wrap > .gallery-container,
-  #wrap > .users-container {
+  #about > .gallery-container,
+  #about > .users-container {
     grid-template-columns: 1fr 1fr;
   }
 }
 
 @media all and (min-width: 1024px) {
-  #wrap > .gallery-container {
+  #about > .gallery-container {
     grid-template-columns: repeat(3, 1fr);
   }
 
-  #wrap > .users-container {
+  #about > .users-container {
     grid-template-columns: repeat(6, 1fr);
   }
 

@@ -1,7 +1,7 @@
 <template>
   <b-navbar
     id="nav-bar"
-    class="py-lg-0 border-bottom rounded-bottom"
+    class="py-lg-0 rounded-bottom"
     type="dark"
     toggleable="lg"
     v-if="this.$route.path !== '/login' && this.$route.path !== '/signup'"
@@ -24,7 +24,9 @@
             <b-dd size="sm" variant="light" :text="searchSelected">
               <b-dd-item-button @click="searchSelected = 'Images'">Images</b-dd-item-button>
               <b-dd-item-button @click="searchSelected = 'Videos'">Videos</b-dd-item-button>
+              <b-dd-divider></b-dd-divider>
               <b-dd-item-button @click="searchSelected = 'Authors'">Authors</b-dd-item-button>
+              <b-dd-item-button @click="searchSelected = 'Tags'">Tags</b-dd-item-button>
             </b-dd>
           </b-input-group-append>
         </b-input-group>
@@ -70,24 +72,19 @@
             shadow
           >
             <b-list-group>
-              <b-list-group-item to="../profile" variant="dark">
-                <b-icon-people-circle class="mr-2"></b-icon-people-circle>My Profile
+              <b-list-group-item to="/profile/" variant="dark">
+                <b-icon-people-circle class="mr-2"></b-icon-people-circle>My
+                Profile
               </b-list-group-item>
 
-              <b-list-group-item to="../about" variant="dark">
+              <b-list-group-item to="/about/" variant="dark">
                 <b-icon-image class="mr-2"></b-icon-image>My Photos
               </b-list-group-item>
-
-              <!-- <b-list-group-item variant="dark">Morbi leo risus</b-list-group-item>
-
-              <b-list-group-item variant="dark">Porta ac consectetur ac</b-list-group-item>
-
-              <b-list-group-item variant="dark">Vestibulum at eros</b-list-group-item>-->
             </b-list-group>
 
             <b-list-group class="bottom-list-group">
               <b-list-group-item to="../about/settings" variant="dark">
-                <b-icon-gear-fill></b-icon-gear-fill>Settings
+                <b-icon-gear-fill class="mr-2"></b-icon-gear-fill>Settings
               </b-list-group-item>
             </b-list-group>
           </b-sidebar>
@@ -106,7 +103,7 @@ export default class NavBar extends Vue {
   userLogged = true;
   searchSelected = "Images";
 
-  search(_evt: Event) {
+  search(/*evt: Event*/) {
     console.log(this.searchSelected);
   }
 }
@@ -150,7 +147,7 @@ button.navbar-toggler:focus {
   cursor: pointer;
 }
 
-.nav-links:active {
+.nav-link:active {
   background: radial-gradient(
     ellipse farthest-side,
     rgba(255, 255, 255, 0.144) 30%,

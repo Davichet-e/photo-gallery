@@ -96,6 +96,7 @@ export default class HelloWorld extends Vue {
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
 h3 {
+  text-align: center;
   margin: 40px 0 0;
 }
 ul {
@@ -103,6 +104,7 @@ ul {
   padding: 0;
 }
 li {
+  text-align: center;
   display: inline-block;
   margin: 0 10px;
 }

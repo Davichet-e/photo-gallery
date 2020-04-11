@@ -10,10 +10,6 @@
 <script lang="ts">
 import NavBar from "./components/NavBar.vue";
 
-import TransitionPage from "./transitions/TransitionPage.vue";
-import Component from "vue-class-component";
-import Vue from "vue";
-
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
 
@@ -21,6 +17,10 @@ export default { components: { NavBar } };
 </script>
 
 <style>
+a {
+  color: whitesmoke;
+}
+
 .border {
   border: 5px solid black;
 }
@@ -38,6 +38,6 @@ export default { components: { NavBar } };
 
 body {
   /* font-family: "Josefin Sans", sans-serif; */
-  background-color: #04001d !important;
+  background-color: #141414 !important;
 }
 </style>

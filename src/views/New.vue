@@ -19,8 +19,14 @@
         toggle-class="nav-link-custom"
         center
       >
-        <b-dropdown-item>Most Recents</b-dropdown-item>
-        <b-dropdown-item>Most Popular</b-dropdown-item>
+        <b-dropdown-item
+          @click="sortingBy = 'recents'"
+          :active="sortingBy === 'recents'"
+        >Most Recents</b-dropdown-item>
+        <b-dropdown-item
+          @click="sortingBy = 'popular'"
+          :active="sortingBy === 'popular'"
+        >Most Popular</b-dropdown-item>
       </b-nav-item-dropdown>
     </b-nav>
     <div :class="active === 'photos' ? 'gallery-container' : 'users-container'">
@@ -56,6 +62,7 @@ import Vue from "vue";
 
 @Component
 export default class New extends Vue {
+  sortingBy = "recents";
   loaded = 0;
   active = "photos";
   handleActive(id: string) {
@@ -107,11 +114,11 @@ section {
 .users-container {
   display: grid;
   margin: 35px;
-  /* grid-auto-rows: 300px; */
   grid-template-columns: repeat(4, 1fr);
   grid-gap: 1rem;
   grid-auto-flow: row dense;
 }
+
 .users-container article {
   height: 200px;
 }

@@ -15,11 +15,23 @@ const routes = [
     name: "About",
     children: [
       {
-        path: ":route",
+        path: "myphotos",
         props: true,
         component: () =>
           import(/* webpackChunkName: "about" */ "../views/About.vue")
       },
+      {
+        path: "settings",
+        props: true,
+        component: () =>
+          import(/* webpackChunkName: "about" */ "../views/About.vue")
+      },
+      {
+        path: "following",
+        props: true,
+        component: () =>
+          import(/* webpackChunkName: "about" */ "../views/About.vue")
+      }
     ],
     // route level code-splitting
     // this generates a separate chunk (about.[hash].js) for this route
@@ -31,44 +43,39 @@ const routes = [
   {
     path: "/new",
     name: "New",
-    // route level code-splitting
-    // this generates a separate chunk (about.[hash].js) for this route
-    // which is lazy-loaded when the route is visited.
     component: () => import(/* webpackChunkName: "new" */ "../views/New.vue")
   },
   {
     path: "/login",
     name: "LogIn",
     props: { route: "login" },
-    // route level code-splitting
-    // this generates a separate chunk (about.[hash].js) for this route
-    // which is lazy-loaded when the route is visited.
     component: () => import(/* webpackChunkName: "login" */ "../views/Auth.vue")
   },
   {
     path: "/signup",
     name: "SignUp",
     props: { route: "sign up" },
-    // route level code-splitting
-    // this generates a separate chunk (about.[hash].js) for this route
-    // which is lazy-loaded when the route is visited.
-    component: () => import(/* webpackChunkName: "signup" */ "../views/Auth.vue")
+    component: () =>
+      import(/* webpackChunkName: "signup" */ "../views/Auth.vue")
   },
   {
     path: "/profile",
     name: "Profile",
-    // route level code-splitting
-    // this generates a separate chunk (about.[hash].js) for this route
-    // which is lazy-loaded when the route is visited.
-    component: () => import(/* webpackChunkName: "profile" */ "../views/Profile.vue")
+    component: () =>
+      import(/* webpackChunkName: "profile" */ "../views/Profile.vue")
   },
   {
     path: "/images/:id",
     name: "Image",
-    // route level code-splitting
-    // this generates a separate chunk (about.[hash].js) for this route
-    // which is lazy-loaded when the route is visited.
-    component: () => import(/* webpackChunkName: "profile" */ "../views/Image.vue")
+    component: () =>
+      import(/* webpackChunkName: "profile" */ "../views/Image.vue")
+  },
+  {
+    path: "/404",
+    alias: "*",
+    name: "NotFound",
+    component: () =>
+      import(/* webpackChunkName: "NotFound" */ "../views/NotFound.vue")
   }
 ];
 
