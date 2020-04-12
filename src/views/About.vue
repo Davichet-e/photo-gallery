@@ -1,12 +1,15 @@
 <template>
   <div class="about">
     <b-nav tabs fill class="mx-4 rounded" small>
-      <b-button v-b-modal.modal-center v-b-tooltip.bottom="'Upload photo'" variant="success">
+      <b-button v-b-modal.upload-modal v-b-tooltip.bottom="'Upload photo'" variant="info">
         <b-icon-camera></b-icon-camera>
+      </b-button>
+      <b-button v-b-modal.modal- v-b-tooltip.bottom="'Edit photos'" variant="success">
+        <b-icon-pencil></b-icon-pencil>
       </b-button>
 
       <b-modal
-        id="modal-center"
+        id="upload-modal"
         class="rounded"
         header-bg-variant="dark"
         header-text-variant="light"

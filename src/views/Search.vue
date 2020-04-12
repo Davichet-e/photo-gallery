@@ -1,5 +1,5 @@
 <template>
-  <div id="wrap">
+  <div id="search">
     <b-nav tabs fill class="mx-4 rounded">
       <b-nav-item
         class="border-left border-bottom rounded-left"
@@ -14,26 +14,19 @@
       >Users</b-nav-item>
       <b-nav-item-dropdown
         class="border-bottom border-right rounded-right"
-        id="my-nav-dropdown"
         text="Sort by"
         toggle-class="nav-link-custom"
         center
       >
-        <b-dropdown-item
-          @click="sortingBy = 'recents'"
-          :active="sortingBy === 'recents'"
-        >Most Recents</b-dropdown-item>
-        <b-dropdown-item
-          @click="sortingBy = 'popular'"
-          :active="sortingBy === 'popular'"
-        >Most Popular</b-dropdown-item>
+        <b-dropdown-item to="search?order=recents" :active="sortingBy === 'recents'">Most Recents</b-dropdown-item>
+        <b-dropdown-item to="search?order=popular" :active="sortingBy === 'popular'">Most Popular</b-dropdown-item>
       </b-nav-item-dropdown>
     </b-nav>
     <div :class="active === 'photos' ? 'gallery-container' : 'users-container'">
       <b-overlay v-for="(image, i) in images" :key="i" :show="loaded < 2" rounded="sm">
-        <a v-show="active === 'photos'" href="#" class="item">
+        <router-link v-show="active === 'photos'" :to="'/images/' + i" class="item">
           <img :src="image" alt="image" @load="loaded++" />
-        </a>
+        </router-link>
 
         <b-card
           v-show="active === 'users'"
@@ -57,12 +50,13 @@
 </template>
 
 <script lang="ts">
-import Component from "vue-class-component";
-import Vue from "vue";
+import "reflect-metadata";
+import { Prop, Component, Vue } from "vue-property-decorator";
 
 @Component
-export default class New extends Vue {
-  sortingBy = "recents";
+export default class Search extends Vue {
+  @Prop({ default: "recents" }) sortingBy!: string;
+
   loaded = 0;
   active = "photos";
   handleActive(id: string) {
@@ -139,25 +133,25 @@ img {
 }
 
 @media all and (min-width: 320px) {
-  #wrap > .gallery-container,
-  #wrap > .users-container {
+  #search > .gallery-container,
+  #search > .users-container {
     grid-template-columns: 1fr;
   }
 }
 
 @media all and (min-width: 768px) {
-  #wrap > .gallery-container,
-  #wrap > .users-container {
+  #search > .gallery-container,
+  #search > .users-container {
     grid-template-columns: 1fr 1fr;
   }
 }
 
 @media all and (min-width: 1024px) {
-  #wrap > .gallery-container {
+  #search > .gallery-container {
     grid-template-columns: repeat(3, 1fr);
   }
 
-  #wrap > .users-container {
+  #search > .users-container {
     grid-template-columns: repeat(6, 1fr);
   }
 

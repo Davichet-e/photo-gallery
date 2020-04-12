@@ -38,6 +38,6 @@ a {
 
 body {
   /* font-family: "Josefin Sans", sans-serif; */
-  background-color: #141414 !important;
+  background-color: #292828 !important;
 }
 </style>

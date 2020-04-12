@@ -10,7 +10,7 @@
 
     <b-navbar-toggle target="nav-collapse"></b-navbar-toggle>
     <b-collapse id="nav-collapse" is-nav>
-      <b-nav-form class="mt-lg-0 mt-4 px-3 w-100 order-lg-0 order-5" @submit.prevent="search">
+      <b-nav-form class="mt-lg-0 mt-4 px-3 order-lg-0 order-5" @submit.prevent="search">
         <b-input-group size="sm w-100">
           <b-input-group-prepend>
             <b-button type="submit" variant="light">
@@ -23,7 +23,6 @@
           <b-input-group-append>
             <b-dd size="sm" variant="light" :text="searchSelected">
               <b-dd-item-button @click="searchSelected = 'Images'">Images</b-dd-item-button>
-              <b-dd-item-button @click="searchSelected = 'Videos'">Videos</b-dd-item-button>
               <b-dd-divider></b-dd-divider>
               <b-dd-item-button @click="searchSelected = 'Authors'">Authors</b-dd-item-button>
               <b-dd-item-button @click="searchSelected = 'Tags'">Tags</b-dd-item-button>
@@ -33,11 +32,10 @@
       </b-nav-form>
 
       <b-navbar-nav class="ml-lg-auto">
-        <b-nav-item v-if="!userLogged" href="#" class="h2 align-self-center my-lg-0 my-sm-2 px-3">
-          <b-icon-three-dots></b-icon-three-dots>
-        </b-nav-item>
-
-        <b-nav-item href="#" class="align-self-center my-lg-0 my-sm-2 px-3">
+        <b-nav-item
+          to="/images/search?order=popular"
+          class="align-self-center my-lg-0 my-sm-2 px-3"
+        >
           <img
             src="https://marvel-live.freetls.fastly.net/canvas/2020/3/9d8776ef343b49079e13d2c9dc821fe8?quality=95&fake=.png"
             alt="trending"

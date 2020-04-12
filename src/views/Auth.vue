@@ -68,13 +68,12 @@
 
 <script lang="ts">
 import "reflect-metadata";
+
 import { Prop, Component, Vue } from "vue-property-decorator";
-import "bootstrap/dist/css/bootstrap.css";
-import "bootstrap-vue/dist/bootstrap-vue.css";
 
 @Component
 export default class Auth extends Vue {
-  @Prop() route!: string;
+  @Prop({ required: true }) readonly route!: string;
 
   isClicked = false;
   state: boolean | null = null;

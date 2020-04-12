@@ -1,5 +1,5 @@
 import Vue from "vue";
-import VueRouter from "vue-router";
+import VueRouter, { Route } from "vue-router";
 import Home from "../views/Home.vue";
 
 Vue.use(VueRouter);
@@ -39,12 +39,6 @@ const routes = [
     component: () =>
       import(/* webpackChunkName: "about" */ "../views/About.vue")
   },
-
-  {
-    path: "/new",
-    name: "New",
-    component: () => import(/* webpackChunkName: "new" */ "../views/New.vue")
-  },
   {
     path: "/login",
     name: "LogIn",
@@ -65,10 +59,17 @@ const routes = [
       import(/* webpackChunkName: "profile" */ "../views/Profile.vue")
   },
   {
+    path: "/images/search",
+    name: "Search",
+    props: (route: Route) => ({ sortingBy: route.query.order }),
+    component: () =>
+      import(/* webpackChunkName: "search" */ "../views/Search.vue")
+  },
+  {
     path: "/images/:id",
     name: "Image",
     component: () =>
-      import(/* webpackChunkName: "profile" */ "../views/Image.vue")
+      import(/* webpackChunkName: "image" */ "../views/Image.vue")
   },
   {
     path: "/404",

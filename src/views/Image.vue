@@ -8,7 +8,7 @@
         <b-icon-plus-circle-fill
           @click="commentActive = true"
           variant="info"
-          class="d-inline-block add-comment-icon"
+          class="d-inline-block border-0 add-comment-icon"
         ></b-icon-plus-circle-fill>
       </h5>
 
@@ -85,7 +85,9 @@
           <b-icon-reply class></b-icon-reply>
         </b-button>
       </b-list-group-item>
-      <b-list-group-item class="other-info"></b-list-group-item>
+      <b-list-group-item class="other-info">
+        <b-badge v-for="tag of tags" :key="tag" class="mx-2 mt-2" variant="secondary">{{ tag }}</b-badge>
+      </b-list-group-item>
     </b-list-group>
   </div>
 </template>
@@ -121,6 +123,14 @@ export default class ImageDetails extends Vue {
       text: "Davi, tk tela "
     }
   ];
+  tags: Array<string> = [
+    "dark",
+    "white",
+    "christmas",
+    "love",
+    "trending",
+    "chulipuni"
+  ];
 
   handleVote(type: string) {
     if (this.selected === "likes") {
@@ -151,12 +161,12 @@ export default class ImageDetails extends Vue {
   addComment(evt: Event) {
     if (this.commentText.length > 0) {
       this.commentActive = false;
-      this.commentText = "";
       this.comments.unshift({
         author: "author",
-        timestamp: 1516510601000,
+        timestamp: Date.now(),
         text: this.commentText
       });
+      this.commentText = "";
     } else {
       this.commentState = false;
     }
@@ -165,20 +175,11 @@ export default class ImageDetails extends Vue {
 </script>
 
 <style scoped>
-.slide-enter-active,
-.slide-leave-active {
-  transition: opacity 1s, transform 1s;
-}
-
-.slide-enter, .slide-leave-to /* .slide-leave-active below version 2.1.8 */ {
-  opacity: 0;
-  transform: translateX(-30%);
-}
-
 h6 + small {
   color: grey;
 }
 .add-comment-icon {
+  background-color: inherit;
   cursor: pointer;
 }
 
@@ -251,10 +252,15 @@ main .list-group-item div:last-child {
 [class$="-info"] {
   border: 1px solid #181818;
   display: flex;
-  background-color: #141414;
+  background-color: #222222;
 }
 
 .author-info > * {
   margin-right: 10px;
+}
+
+.other-info {
+  display: flex;
+  flex-wrap: wrap;
 }
 </style>
