@@ -1,6 +1,6 @@
 <template>
   <transition name="fade">
-    <div id="auth" :class="route === 'login' ? 'login' : 'signup'">
+    <div id="auth" :class="route">
       <main>
         <h4>{{ route.toUpperCase() }}</h4>
         <hr />
@@ -46,7 +46,7 @@
               <a href="#">terms of service</a>
             </span>
           </b-form-checkbox>
-          <b-button type="submit" variant="light">{{ route === "sign up" ? "Sign Up" : "Login" }}</b-button>
+          <b-button type="submit" variant="light" class="text-capitalize">{{ route }}</b-button>
         </b-form>
         <aside>
           <aside class="line">OR</aside>

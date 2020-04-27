@@ -102,7 +102,7 @@ export default class NavBar extends Vue {
   searchSelected = "Images";
 
   search(/*evt: Event*/) {
-    console.log(this.searchSelected);
+    // console.log(this.searchSelected);
   }
 }
 </script>

@@ -121,6 +121,21 @@ export default class ImageDetails extends Vue {
       author: "Paula la reshuloona",
       timestamp: 1516510601000,
       text: "Davi, tk tela "
+    },
+    {
+      author: "Juan",
+      timestamp: 7238498237,
+      text: "lLore fsdfndsjl f "
+    },
+    {
+      author: "Ale",
+      timestamp: 7834598347,
+      text: "adios"
+    },
+    {
+      author: "Abraham",
+      timestamp: 676347863874,
+      text: "sadlkfjkñalsd"
     }
   ];
   tags: Array<string> = [

@@ -45,7 +45,7 @@
     </b-nav>
     <div class="gallery-container">
       <b-overlay v-for="(image, i) in images" :key="i" :show="loaded < 2" rounded="sm">
-        <router-link :to="'images/' + i" class="item">
+        <router-link :to="'/images/' + i" class="item">
           <img :src="image" alt="image" @load="loaded++" />
         </router-link>
       </b-overlay>

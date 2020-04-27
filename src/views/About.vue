@@ -146,18 +146,10 @@ export default class About extends Vue {
   }
 
   handleUpload(/* _bvModalEvt: BvModalEvent*/) {
-    console.log(
-      Object.entries(this.tags).forEach(([key, value]) => {
-        if (value) console.log(key);
-      })
-    );
-    console.log(this.file);
-
     for (const tag in this.tags) this.tags[tag] = false;
   }
 
   handleActive(id: string) {
-    console.log(this.route);
 
     this.active = id;
   }
