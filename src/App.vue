@@ -8,6 +8,8 @@
 </template>
 
 <script lang="ts">
+import "reflect-metadata";
+
 import NavBar from "./components/NavBar.vue";
 
 import "bootstrap/dist/css/bootstrap.css";
@@ -21,6 +23,10 @@ a {
   color: whitesmoke;
 }
 
+a:hover {
+  color: cadetblue;
+}
+
 .border {
   border: 5px solid black;
 }
@@ -31,7 +37,8 @@ a {
   transition: opacity 1s, transform 1s;
 }
 
-.slide-enter, .slide-leave-to /* .slide-leave-active below version 2.1.8 */ {
+.slide-enter,
+.slide-leave-to {
   opacity: 0;
   transform: translateX(-30%);
 }

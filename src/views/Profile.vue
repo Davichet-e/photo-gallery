@@ -3,7 +3,11 @@
     <div id="profile">
       <h1>{{ data.name }}</h1>
       <p>{{ data.description }}</p>
-      <b-icon-people-circle variant="dark" class="h1" scale="2"></b-icon-people-circle>
+      <b-icon-people-circle
+        variant="dark"
+        class="h1"
+        scale="2"
+      ></b-icon-people-circle>
       <b-row class="w-100 mt-auto">
         <b-col></b-col>
         <b-col class="d-flex justify-content-center">
@@ -28,7 +32,9 @@
           </div>
         </b-col>
         <b-col class="d-flex flex-row-reverse mb-3 mr-3">
-          <b-button pill size="sm" variant="success" class="ml-2">Donate</b-button>
+          <b-button pill size="sm" variant="success" class="ml-2"
+            >Donate</b-button
+          >
           <b-button pill size="sm" variant="info">Follow</b-button>
         </b-col>
       </b-row>
@@ -39,12 +45,25 @@
       align="center"
       class="mx-4 pt-2 border border-top-0 border-secondary rounded-bottom"
     >
-      <b-nav-item @click="handleActive('popular')" :active="active === 'popular'">Most Popular</b-nav-item>
-      <b-nav-item @click="handleActive('recent')" :active="active === 'recent'">Most Recent</b-nav-item>
-      <b-nav-item @click="handleActive('about')" :active="active === 'about'">About Me</b-nav-item>
+      <b-nav-item
+        @click="handleActive('popular')"
+        :active="active === 'popular'"
+        >Most Popular</b-nav-item
+      >
+      <b-nav-item @click="handleActive('recent')" :active="active === 'recent'"
+        >Most Recent</b-nav-item
+      >
+      <b-nav-item @click="handleActive('about')" :active="active === 'about'"
+        >About Me</b-nav-item
+      >
     </b-nav>
     <div class="gallery-container">
-      <b-overlay v-for="(image, i) in images" :key="i" :show="loaded < 2" rounded="sm">
+      <b-overlay
+        v-for="(image, i) in images"
+        :key="i"
+        :show="loaded < 2"
+        rounded="sm"
+      >
         <router-link :to="'/images/' + i" class="item">
           <img :src="image" alt="image" @load="loaded++" />
         </router-link>

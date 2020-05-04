@@ -1,10 +1,10 @@
 <template>
   <div id="not-found">
     <b-icon-x-square-fill variant="danger" scale="2"></b-icon-x-square-fill>
-    <h1>Not Found</h1>
-    <p>
+    <h1 class="not-found-heading">Not Found</h1>
+    <p class="not-found-text">
       Oops, we couldn't find that page. Try going
-      <router-link to="/">home</router-link>
+      <router-link to="/" class="not-found-link">home</router-link>
     </p>
   </div>
 </template>
@@ -17,13 +17,19 @@
   align-items: center;
   justify-content: center;
 }
-h1 {
+
+.not-found-heading {
+  color: goldenrod;
   margin-top: 20px;
   font-weight: bold;
-  color: darkgoldenrod;
 }
-p {
+
+.not-found-text {
   margin-top: 20px;
   color: whitesmoke;
+}
+
+.not-found-link {
+  color: teal;
 }
 </style>

@@ -5,26 +5,49 @@
         class="border-left border-bottom rounded-left"
         @click="handleActive('photos')"
         :active="active === 'photos'"
-      >Photos</b-nav-item>
+      >
+        Photos
+      </b-nav-item>
       <b-nav-item
         class="border-bottom"
         @click="handleActive('users')"
         :active="active === 'users'"
         active-class="active"
-      >Users</b-nav-item>
+      >
+        Users
+      </b-nav-item>
       <b-nav-item-dropdown
         class="border-bottom border-right rounded-right"
         text="Sort by"
         toggle-class="nav-link-custom"
         center
       >
-        <b-dropdown-item to="search?order=recents" :active="sortingBy === 'recents'">Most Recents</b-dropdown-item>
-        <b-dropdown-item to="search?order=popular" :active="sortingBy === 'popular'">Most Popular</b-dropdown-item>
+        <b-dropdown-item
+          to="search?order=recents"
+          :active="sortingBy === 'recents'"
+        >
+          Most Recents
+        </b-dropdown-item>
+        <b-dropdown-item
+          to="search?order=popular"
+          :active="sortingBy === 'popular'"
+        >
+          Most Popular
+        </b-dropdown-item>
       </b-nav-item-dropdown>
     </b-nav>
     <div :class="active === 'photos' ? 'gallery-container' : 'users-container'">
-      <b-overlay v-for="(image, i) in images" :key="i" :show="loaded < 2" rounded="sm">
-        <router-link v-show="active === 'photos'" :to="'/images/' + i" class="item">
+      <b-overlay
+        v-for="(image, i) in images"
+        :key="i"
+        :show="loaded < 2"
+        rounded="sm"
+      >
+        <router-link
+          v-show="active === 'photos'"
+          :to="'/images/' + i"
+          class="item"
+        >
           <img :src="image" alt="image" @load="loaded++" />
         </router-link>
 
@@ -38,7 +61,9 @@
           class="mb-2"
         >
           <div class="card-img-overlay d-flex flex-column">
-            <div class="mt-auto">{{ Math.floor(Math.random() * 100) }} photos uploaded</div>
+            <div class="mt-auto">
+              {{ Math.floor(Math.random() * 100) }} photos uploaded
+            </div>
           </div>
         </b-card>
       </b-overlay>
@@ -50,7 +75,6 @@
 </template>
 
 <script lang="ts">
-import "reflect-metadata";
 import { Prop, Component, Vue } from "vue-property-decorator";
 
 @Component

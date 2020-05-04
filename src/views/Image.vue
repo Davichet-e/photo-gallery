@@ -24,9 +24,22 @@
               size="sm"
               placeholder="Add a comment"
             ></b-form-input>
-            <b-form-invalid-feedback :state="commentState">The text can't be empty.</b-form-invalid-feedback>
-            <b-button @click="commentActive = false" class="ml-auto mt-2" size="sm">Cancel</b-button>
-            <b-button type="submit" class="ml-auto mt-2" variant="info" size="sm">Comment</b-button>
+            <b-form-invalid-feedback :state="commentState"
+              >The text can't be empty.</b-form-invalid-feedback
+            >
+            <b-button
+              @click="commentActive = false"
+              class="ml-auto mt-2"
+              size="sm"
+              >Cancel</b-button
+            >
+            <b-button
+              type="submit"
+              class="ml-auto mt-2"
+              variant="info"
+              size="sm"
+              >Comment</b-button
+            >
           </b-form>
         </div>
       </transition>
@@ -34,7 +47,7 @@
       <b-list-group>
         <b-list-group-item
           class="comments-info"
-          v-for="[index, {author, timestamp, text}] of comments.entries()"
+          v-for="[index, { author, timestamp, text }] of comments.entries()"
           :key="index"
         >
           <div class="d-flex">
@@ -52,8 +65,12 @@
         <b-avatar></b-avatar>
         <div>
           <h5>Author / {{ photosUploaded }} photos</h5>
-          <b-button size="sm" class="rounded-pill" variant="dark">Follow</b-button>
-          <b-button size="sm" class="rounded-pill" variant="success">Donate</b-button>
+          <b-button size="sm" class="rounded-pill" variant="dark"
+            >Follow</b-button
+          >
+          <b-button size="sm" class="rounded-pill" variant="success"
+            >Donate</b-button
+          >
         </div>
       </b-list-group-item>
       <b-list-group-item class="vote-info">
@@ -81,12 +98,23 @@
             <b>{{ dislikes }}</b>
           </small>
         </b-button>
-        <b-button variant="light" v-b-tooltip.hover="'Share'" size="sm" class="rounded-pill">
+        <b-button
+          variant="light"
+          v-b-tooltip.hover="'Share'"
+          size="sm"
+          class="rounded-pill"
+        >
           <b-icon-reply class></b-icon-reply>
         </b-button>
       </b-list-group-item>
       <b-list-group-item class="other-info">
-        <b-badge v-for="tag of tags" :key="tag" class="mx-2 mt-2" variant="secondary">{{ tag }}</b-badge>
+        <b-badge
+          v-for="tag of tags"
+          :key="tag"
+          class="mx-2 mt-2"
+          variant="secondary"
+          >{{ tag }}</b-badge
+        >
       </b-list-group-item>
     </b-list-group>
   </div>
@@ -173,7 +201,7 @@ export default class ImageDetails extends Vue {
       this.selected = type;
     }
   }
-  addComment(evt: Event) {
+  addComment(/* evt: Event */) {
     if (this.commentText.length > 0) {
       this.commentActive = false;
       this.comments.unshift({

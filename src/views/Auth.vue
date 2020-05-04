@@ -7,7 +7,11 @@
 
         <b-form class="auth-form" @submit.prevent="onSubmit">
           <b-input-group class="mb-4">
-            <b-form-input placeholder="Username" required autofocus></b-form-input>
+            <b-form-input
+              placeholder="Username"
+              required
+              autofocus
+            ></b-form-input>
 
             <b-input-group-append is-text>
               <b-icon-person-fill></b-icon-person-fill>
@@ -22,7 +26,9 @@
             </b-input-group-append>
           </b-input-group>
 
-          <a class="password-reset" v-if="route === 'login'" href="#">Forgot your password?</a>
+          <a class="password-reset" v-if="route === 'login'" href="#">
+            Forgot your password?
+          </a>
           <b-input-group class="mb-4">
             <b-form-input placeholder="Password" required></b-form-input>
 
@@ -46,7 +52,9 @@
               <a href="#">terms of service</a>
             </span>
           </b-form-checkbox>
-          <b-button type="submit" variant="light" class="text-capitalize">{{ route }}</b-button>
+          <b-button type="submit" variant="light" class="text-capitalize">
+            {{ route }}
+          </b-button>
         </b-form>
         <aside>
           <aside class="line">OR</aside>
@@ -67,8 +75,6 @@
 </template>
 
 <script lang="ts">
-import "reflect-metadata";
-
 import { Prop, Component, Vue } from "vue-property-decorator";
 
 @Component

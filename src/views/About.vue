@@ -1,10 +1,18 @@
 <template>
   <div class="about">
     <b-nav tabs fill class="mx-4 rounded" small>
-      <b-button v-b-modal.upload-modal v-b-tooltip.bottom="'Upload photo'" variant="info">
+      <b-button
+        v-b-modal.upload-modal
+        v-b-tooltip.bottom="'Upload photo'"
+        variant="info"
+      >
         <b-icon-camera></b-icon-camera>
       </b-button>
-      <b-button v-b-modal.modal- v-b-tooltip.bottom="'Edit photos'" variant="success">
+      <b-button
+        v-b-modal.edit-modal
+        v-b-tooltip.bottom="'Edit photos'"
+        variant="success"
+      >
         <b-icon-pencil></b-icon-pencil>
       </b-button>
 
@@ -19,25 +27,26 @@
         centered
         title="Upload photo"
         @ok="handleUpload"
-        ok-title="Upload"
-        ok-only
         footer-text-variant="secondary"
       >
         <b-form>
           <b-file v-model="file" accept="image/*" id="file-input"></b-file>
         </b-form>
-        <p class="mb-4 constraints-text">The file must have 2000px at his minimum side</p>
+        <p class="mb-4 constraints-text">
+          The file must have 2000px at his minimum side
+        </p>
 
         <p class="tags-text">Select #tags:</p>
 
         <div class="modal-tags">
           <b-badge
-            v-for="(_i, tag) in tags"
+            v-for="(_i, tag) of tags"
             :key="tag"
             @click="handleActivate(tag)"
             class="mx-2 mt-2"
             :variant="tags[tag] ? 'success' : 'secondary'"
-          >{{ tag }}</b-badge>
+            >{{ tag }}</b-badge
+          >
           <b-badge @click="addTag" class="mx-2 mt-2" variant="info">
             <!-- TODO -->
             <b-icon-plus></b-icon-plus>
@@ -47,9 +56,9 @@
         <template v-slot:modal-footer="{ ok }">
           <p class="tags-text mr-auto">
             By uploading it you accept our
-            <a
-              href="https://www.youtube.com/watch?v=dQw4w9WgXcQ"
-            >Terms and Conditions</a>
+            <a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+              >Terms and Conditions</a
+            >
           </p>
 
           <b-button size="sm" variant="success" @click="ok()">Upload</b-button>
@@ -58,36 +67,50 @@
 
       <b-nav-item
         class="border-left border-bottom rounded-left"
-        @click="handleActive('myphotos')"
-        :active="active === 'myphotos'"
+        :active="routes === 'myphotos'"
         to="/about/myphotos"
-      >My Photos</b-nav-item>
+        >My Photos</b-nav-item
+      >
 
       <b-nav-item
         class="border-bottom"
-        @click="handleActive('following')"
-        :active="active === 'following'"
+        :active="routes === 'following'"
         to="/about/following"
-      >Following</b-nav-item>
+        >Following</b-nav-item
+      >
       <b-nav-item
         class="border-right border-bottom rounded-right"
-        @click="handleActive('settings')"
-        :active="active === 'settings'"
+        :active="routes === 'settings'"
         to="/about/settings"
-      >Settings</b-nav-item>
+        >Settings</b-nav-item
+      >
     </b-nav>
     <div
-      :class="{'gallery-container': active === 'myphotos', 'users-container': active === 'following'}"
+      :class="{
+        'gallery-container': routes === 'myphotos',
+        'users-container': routes === 'following'
+      }"
     >
-      <b-overlay v-for="(image, i) in images" :key="i" :show="loaded < 2" rounded="sm">
+      <b-overlay
+        v-for="(image, i) in images"
+        :key="i"
+        :show="routes !== 'settings' && loaded < 2"
+        rounded="sm"
+      >
         <router-link
-          v-show="active === 'myphotos' || active === 'following'"
-          :to="active === 'myphotos' ? '/images/' + i : '/profile'"
+          v-show="routes === 'myphotos' || routes === 'following'"
+          :to="routes === 'myphotos' ? '/images/' + i : '/profile'"
           class="item"
         >
-          <img v-show="active === 'myphotos'" :src="image" alt="image" @load="loaded++" />
+          <img
+            class="gallery-image"
+            v-show="routes === 'myphotos'"
+            :src="image"
+            alt="image"
+            @load="loaded++"
+          />
           <b-card
-            v-show="active === 'following'"
+            v-show="routes === 'following'"
             :title="'User' + i"
             overlay
             :img-src="image"
@@ -96,28 +119,30 @@
             class="mb-2"
           >
             <div class="card-img-overlay d-flex flex-column">
-              <div class="mt-auto">{{ Math.floor(Math.random() * 100) }} photos uploaded</div>
+              <div class="mt-auto">
+                {{ Math.floor(Math.random() * 100) }} photos uploaded
+              </div>
             </div>
           </b-card>
         </router-link>
       </b-overlay>
-      <h1 v-show="active === 'settings'" style="text-align: center; color: peru">HOLA GUAPETONA</h1>
+      <h1 v-show="routes === 'settings'" class="settings-header">
+        TODO
+      </h1>
     </div>
   </div>
 </template>
 
 <script lang="ts">
-import "reflect-metadata";
-
 import { Component, Vue, Prop } from "vue-property-decorator";
 
 @Component
 export default class About extends Vue {
-  @Prop({ default: "myphotos" }) readonly route!: string;
+  @Prop({ required: true, type: String }) routes!: string;
+  @Prop({ type: Boolean }) p!: boolean;
 
   loaded = 0;
   file: File | null = null;
-  active = this.route;
   tags: Record<string, boolean> = {
     dark: false,
     white: false,
@@ -149,11 +174,6 @@ export default class About extends Vue {
     for (const tag in this.tags) this.tags[tag] = false;
   }
 
-  handleActive(id: string) {
-
-    this.active = id;
-  }
-
   addTag() {
     // TODO
   }
@@ -181,6 +201,11 @@ export default class About extends Vue {
 
 div > span:hover {
   cursor: pointer;
+}
+
+.settings-header {
+  text-align: center;
+  color: peru;
 }
 
 .users-container {

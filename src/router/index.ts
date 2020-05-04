@@ -11,26 +11,27 @@ const routes = [
     component: Home
   },
   {
-    path: "/about/",
+    path: "/about",
     name: "About",
+    props: (route: Route) => ({ routes: route.name?.toLocaleLowerCase() }),
     children: [
       {
         path: "myphotos",
-        props: true,
+        name: "MyPhotos",
         component: () =>
-          import(/* webpackChunkName: "about" */ "../views/About.vue")
-      },
-      {
-        path: "settings",
-        props: true,
-        component: () =>
-          import(/* webpackChunkName: "about" */ "../views/About.vue")
+          import(/* webpackChunkName: "myphotos" */ "../views/About.vue")
       },
       {
         path: "following",
-        props: true,
+        name: "Following",
         component: () =>
-          import(/* webpackChunkName: "about" */ "../views/About.vue")
+          import(/* webpackChunkName: "following" */ "../views/About.vue")
+      },
+      {
+        path: "settings",
+        name: "Settings",
+        component: () =>
+          import(/* webpackChunkName: "settings" */ "../views/About.vue")
       }
     ],
     // route level code-splitting

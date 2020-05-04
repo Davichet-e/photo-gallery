@@ -10,7 +10,10 @@
 
     <b-navbar-toggle target="nav-collapse"></b-navbar-toggle>
     <b-collapse id="nav-collapse" is-nav>
-      <b-nav-form class="mt-lg-0 mt-4 px-3 order-lg-0 order-5" @submit.prevent="search">
+      <b-nav-form
+        class="mt-lg-0 mt-4 px-3 order-lg-0 order-5"
+        @submit.prevent="search"
+      >
         <b-input-group size="sm w-100">
           <b-input-group-prepend>
             <b-button type="submit" variant="light">
@@ -22,10 +25,16 @@
 
           <b-input-group-append>
             <b-dd size="sm" variant="light" :text="searchSelected">
-              <b-dd-item-button @click="searchSelected = 'Images'">Images</b-dd-item-button>
+              <b-dd-item-button @click="searchSelected = 'Images'"
+                >Images</b-dd-item-button
+              >
               <b-dd-divider></b-dd-divider>
-              <b-dd-item-button @click="searchSelected = 'Authors'">Authors</b-dd-item-button>
-              <b-dd-item-button @click="searchSelected = 'Tags'">Tags</b-dd-item-button>
+              <b-dd-item-button @click="searchSelected = 'Authors'"
+                >Authors</b-dd-item-button
+              >
+              <b-dd-item-button @click="searchSelected = 'Tags'"
+                >Tags</b-dd-item-button
+              >
             </b-dd>
           </b-input-group-append>
         </b-input-group>
@@ -47,14 +56,16 @@
           v-if="!userLogged"
           to="/login"
           class="px-4 nav-links align-self-center my-lg-0 my-sm-2"
-        >Login</b-nav-item>
+          >Login
+        </b-nav-item>
 
         <b-nav-item
           v-if="!userLogged"
           to="/signup"
           class="px-2 mx-3 nav-links border rounded align-self-center my-lg-0 my-sm-2"
           href="#"
-        >Sign Up</b-nav-item>
+          >Sign Up
+        </b-nav-item>
 
         <b-nav-text v-else class="align-self-center">
           <b-button size="sm" variant="dark" v-b-toggle.sidebar-variant>
