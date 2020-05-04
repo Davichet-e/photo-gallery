@@ -134,12 +134,12 @@
 </template>
 
 <script lang="ts">
+import "reflect-metadata";
 import { Component, Vue, Prop } from "vue-property-decorator";
 
 @Component
 export default class About extends Vue {
-  @Prop({ required: true, type: String }) routes!: string;
-  @Prop({ type: Boolean }) p!: boolean;
+  @Prop({ default: "myphotos" }) routes!: string;
 
   loaded = 0;
   file: File | null = null;
