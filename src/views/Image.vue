@@ -189,7 +189,6 @@ export default class ImageDetails extends Vue {
     }
   }
   addComment(/* evt: Event */) {
-    console.log(this.$store.getters["auth/userReference"]);
     if (this.commentText.length) {
       this.$store
         .dispatch("image/addCommentToImg", {

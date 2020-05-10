@@ -57,8 +57,6 @@ export const auth: Module<AuthState, unknown> = {
         .auth()
         .createUserWithEmailAndPassword(email, password)
         .then(user => {
-          console.log(user);
-
           return dispatch(
             "user/addUser",
             {
@@ -99,8 +97,7 @@ export const auth: Module<AuthState, unknown> = {
             }
           }
         })
-        .then(() => dispatch("authUser"))
-        .catch(console.log);
+        .then(() => dispatch("authUser"));
     },
 
     async signOut({ commit }) {

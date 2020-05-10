@@ -2,9 +2,6 @@
   <div id="home">
     <img alt="Vue logo" src="../assets/logo.png" />
     <hello-world msg="Welcome to Your Vue.js App" />
-    <h1 style="color: peru">
-      {{ getUsers }}
-    </h1>
   </div>
 </template>
 
