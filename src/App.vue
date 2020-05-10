@@ -8,14 +8,20 @@
 </template>
 
 <script lang="ts">
-import "reflect-metadata";
-
-import NavBar from "./components/NavBar.vue";
-
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
 
-export default { components: { NavBar } };
+import Vue from "vue";
+import Component from "vue-class-component";
+
+import NavBar from "./components/NavBar.vue";
+
+@Component({ components: { NavBar } })
+export default class App extends Vue {
+  created() {
+    this.$store.dispatch("auth/authUser");
+  }
+}
 </script>
 
 <style>

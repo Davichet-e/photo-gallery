@@ -1,7 +1,7 @@
 <template>
   <div id="image">
     <main>
-      <img class="shadow-lg" src="https://picsum.photos/1500/500" alt />
+      <img class="photo" :src="image ? image.url : '#'" alt />
       <h5 class="mt-5">
         Comments
         <b-icon-chat-dots class="ml-1 mr-3"></b-icon-chat-dots>
@@ -47,13 +47,13 @@
       <b-list-group>
         <b-list-group-item
           class="comments-info"
-          v-for="[index, { author, timestamp, text }] of comments.entries()"
+          v-for="[index, { author, date, text }] of comments.entries()"
           :key="index"
         >
           <div class="d-flex">
             <b-avatar to="../profile" size="sm" class="mr-2"></b-avatar>
-            <h6 class="mr-2">{{ author }}</h6>
-            <small>{{ new Date(timestamp).toDateString() }}</small>
+            <h6 class="mr-2">{{ author.username }}</h6>
+            <small>{{ date.toDate().toLocaleString() }}</small>
           </div>
 
           <div>{{ text }}</div>
@@ -104,7 +104,7 @@
           size="sm"
           class="rounded-pill"
         >
-          <b-icon-reply class></b-icon-reply>
+          <b-icon-reply></b-icon-reply>
         </b-button>
       </b-list-group-item>
       <b-list-group-item class="other-info">
@@ -123,9 +123,17 @@
 <script lang="ts">
 import Component from "vue-class-component";
 import Vue from "vue";
+import { firestore } from "firebase/app";
 
-@Component
+import { Image } from "@/store/modules/images";
+import { mapState } from "vuex";
+import { User } from "../store/modules/users";
+
+@Component({
+  computed: mapState("auth", ["authUser"])
+})
 export default class ImageDetails extends Vue {
+  public authUser!: User | null;
   commentState: boolean | null = null;
   commentText = "";
   commentActive = false;
@@ -133,39 +141,6 @@ export default class ImageDetails extends Vue {
   likes = Math.floor(Math.random() * 10000);
   dislikes = Math.floor(Math.random() * 10000);
   selected: string | null = null;
-  comments = [
-    {
-      author: "Eneas",
-      timestamp: 1586517601000,
-      text:
-        "Lorem ipsum dolor sit amet consectetur adipisicing elit. Et debitis explicabo"
-    },
-    {
-      author: "Aquiles",
-      timestamp: 1516510601000,
-      text: "Lorem ipsum dolor sit "
-    },
-    {
-      author: "Paula la reshuloona",
-      timestamp: 1516510601000,
-      text: "Davi, tk tela "
-    },
-    {
-      author: "Juan",
-      timestamp: 7238498237,
-      text: "lLore fsdfndsjl f "
-    },
-    {
-      author: "Ale",
-      timestamp: 7834598347,
-      text: "adios"
-    },
-    {
-      author: "Abraham",
-      timestamp: 676347863874,
-      text: "sadlkfjkñalsd"
-    }
-  ];
   tags: Array<string> = [
     "dark",
     "white",
@@ -174,6 +149,18 @@ export default class ImageDetails extends Vue {
     "trending",
     "chulipuni"
   ];
+
+  created() {
+    this.$store.dispatch("image/bindImagesRef");
+  }
+  get image(): Image {
+    return this.$store.getters["image/getImageById"]("juF5H0NKStoC8m5KHQQE");
+  }
+
+  get comments() {
+    if (this.image) return this.image.comments;
+    return [];
+  }
 
   handleVote(type: string) {
     if (this.selected === "likes") {
@@ -202,17 +189,22 @@ export default class ImageDetails extends Vue {
     }
   }
   addComment(/* evt: Event */) {
-    if (this.commentText.length > 0) {
-      this.commentActive = false;
-      this.comments.unshift({
-        author: "author",
-        timestamp: Date.now(),
-        text: this.commentText
-      });
-      this.commentText = "";
-    } else {
-      this.commentState = false;
-    }
+    console.log(this.$store.getters["auth/userReference"]);
+    if (this.commentText.length) {
+      this.$store
+        .dispatch("image/addCommentToImg", {
+          photoId: this.image.id,
+          comment: {
+            author: this.$store.getters["auth/userReference"],
+            date: firestore.Timestamp.fromDate(new Date()),
+            text: this.commentText
+          }
+        })
+        .then(() => {
+          this.commentActive = false;
+          this.commentText = "";
+        });
+    } else this.commentState = false;
   }
 }
 </script>
@@ -253,7 +245,7 @@ img {
   max-height: 600px;
   /* width: 100%; */
   max-width: 100%;
-  min-width: 300px;
+  min-width: 60%;
   /* height: auto; */
 }
 

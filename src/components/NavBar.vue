@@ -53,14 +53,14 @@
         </b-nav-item>
 
         <b-nav-item
-          v-if="!userLogged"
+          v-if="!userIsLogged"
           to="/login"
           class="px-4 nav-links align-self-center my-lg-0 my-sm-2"
           >Login
         </b-nav-item>
 
         <b-nav-item
-          v-if="!userLogged"
+          v-if="!userIsLogged"
           to="/signup"
           class="px-2 mx-3 nav-links border rounded align-self-center my-lg-0 my-sm-2"
           href="#"
@@ -89,6 +89,14 @@
               <b-list-group-item to="/about/" variant="dark">
                 <b-icon-image class="mr-2"></b-icon-image>My Photos
               </b-list-group-item>
+              <b-list-group-item
+                to="/"
+                @click="signOut"
+                variant="dark"
+                class="danger-item"
+              >
+                <b-icon-house-door class="mr-2"></b-icon-house-door>Sign Out
+              </b-list-group-item>
             </b-list-group>
 
             <b-list-group class="bottom-list-group">
@@ -106,20 +114,32 @@
 <script lang="ts">
 import Component from "vue-class-component";
 import Vue from "vue";
+import { mapGetters } from "vuex";
 
-@Component
+@Component({
+  computed: mapGetters("auth", ["userIsLogged"])
+})
 export default class NavBar extends Vue {
-  userLogged = true;
+  public userIsLogged!: boolean;
   searchSelected = "Images";
 
   search(/*evt: Event*/) {
     // console.log(this.searchSelected);
+  }
+
+  signOut() {
+    this.$store.dispatch("auth/signOut");
+    this.$router.push("/");
   }
 }
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
+#nav-bar {
+  background-color: #121212;
+}
+
 .list-group * {
   background-color: inherit;
 }
@@ -127,10 +147,6 @@ export default class NavBar extends Vue {
 .list-group:last-child {
   position: relative;
   top: 75%;
-}
-
-#nav-bar {
-  background-color: #121212;
 }
 
 button.navbar-toggler {
@@ -171,9 +187,8 @@ button.navbar-toggler:focus {
     width: auto;
   }
 }
-/* @media screen and (min-width: 768px) {
-  .form-inline {
-    width: 50%;
-  }
-} */
+
+a.danger-item {
+  color: #dc3545;
+}
 </style>

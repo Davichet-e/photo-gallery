@@ -38,7 +38,7 @@
     </b-nav>
     <div :class="active === 'photos' ? 'gallery-container' : 'users-container'">
       <b-overlay
-        v-for="(image, i) in images"
+        v-for="(element, i) in activeElements"
         :key="i"
         :show="loaded < 2"
         rounded="sm"
@@ -48,22 +48,20 @@
           :to="'/images/' + i"
           class="item"
         >
-          <img :src="image" alt="image" @load="loaded++" />
+          <img :src="element" alt="image" @load="loaded++" />
         </router-link>
 
         <b-card
           v-show="active === 'users'"
           :title="'User' + i"
           overlay
-          :img-src="image"
+          :img-src="element.profileImageUrl"
           img-alt="Image"
           tag="article"
           class="mb-2"
         >
           <div class="card-img-overlay d-flex flex-column">
-            <div class="mt-auto">
-              {{ Math.floor(Math.random() * 100) }} photos uploaded
-            </div>
+            <div class="mt-auto">{{ element.followers }} photos uploaded</div>
           </div>
         </b-card>
       </b-overlay>
@@ -71,6 +69,7 @@
     <section>
       <a href="#">Next ></a>
     </section>
+    <h1>{{ users }}</h1>
   </div>
 </template>
 
@@ -85,6 +84,11 @@ export default class Search extends Vue {
   active = "photos";
   handleActive(id: string) {
     this.active = id;
+  }
+  users = [];
+
+  get activeElements(): Array<string | object> {
+    return this.active === "photos" ? this.images : this.users;
   }
 
   get images(): Array<string> {

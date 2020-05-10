@@ -127,7 +127,7 @@
         </router-link>
       </b-overlay>
       <h1 v-show="routes === 'settings'" class="settings-header">
-        TODO
+        {{ users }}
       </h1>
     </div>
   </div>
@@ -176,6 +176,14 @@ export default class About extends Vue {
 
   addTag() {
     // TODO
+  }
+
+  get users() {
+    return this.$store.getters["user/getUsers"];
+  }
+
+  created() {
+    this.$store.dispatch("user/bindUsersRef");
   }
 }
 </script>
