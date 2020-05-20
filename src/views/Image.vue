@@ -379,7 +379,6 @@ export default class ImageDetails extends Vue {
   addComment() {
     if (this.authUser && this.image) {
       if (this.commentText.length) {
-        console.log(this.authUser);
         const comment = {
           author: this.userReference,
           date: firestore.Timestamp.now(),

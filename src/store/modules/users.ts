@@ -28,10 +28,7 @@ export const user = {
       return state.users;
     },
     getUserById(state: UserState) {
-      return (userId: string) => {
-        console.log(state.users.find(({ id }) => id === userId));
-        return state.users.find(({ id }) => id === userId);
-      };
+      return (userId: string) => state.users.find(({ id }) => id === userId);
     },
     isBeingFollowed(_state: UserState) {
       return (user: User, followingId: string) =>
