@@ -51,7 +51,11 @@
           :key="index"
         >
           <div class="d-flex">
-            <b-avatar to="../profile" size="sm" class="mr-2"></b-avatar>
+            <b-avatar
+              :to="'/profile/' + author.id"
+              size="sm"
+              class="mr-2"
+            ></b-avatar>
             <h6 class="comment-author mr-2">{{ author.username }}</h6>
             <small>{{ date.toDate().toLocaleString() }}</small>
           </div>
@@ -62,15 +66,12 @@
     </main>
     <b-list-group class="shadow-sm">
       <b-list-group-item class="author-information">
-        <b-avatar></b-avatar>
+        <b-avatar :to="'/profile/' + imageAuthor.id"></b-avatar>
         <div>
           <h5 class="golden-title">
-            {{ image ? image.author.username : "" }} /
-            {{ photosUploaded }} photos
+            {{ imageAuthor.username }} / {{ photosUploaded }} photos
           </h5>
-          <template
-            v-if="authUser && image ? image.author.id !== authUser.id : true"
-          >
+          <template v-if="authUser && imageAuthor.id !== authUser.id">
             <b-button
               size="sm"
               class="rounded-pill mx-2"
@@ -127,9 +128,7 @@
         <b-input v-else class="w-50" v-model="imageTitle">
           {{ image.title }}
         </b-input>
-        <template
-          v-if="authUser && image ? image.author.id === authUser.id : false"
-        >
+        <template v-if="authUser && imageAuthor.id === authUser.id">
           <b-button
             v-b-tooltip.hover="'Edit photo'"
             class="edit-button"
@@ -309,6 +308,10 @@ export default class ImageDetails extends Vue {
         .then(url => (this.imageURL = url))
         .catch(this.showError);
     });
+  }
+
+  get imageAuthor() {
+    return this.image?.author ?? {};
   }
 
   get comments() {

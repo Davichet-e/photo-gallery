@@ -92,7 +92,7 @@ export default class Profile extends Vue {
   public getImagesOfUser!: (id: string) => Array<Image>;
   public getImageURL!: (id: string) => Promise<string>;
   public getUserById!: (id: string) => User;
-  @Prop({ required: true }) userId!: string;
+  @Prop({ required: true, type: String }) userId!: string;
 
   images: Array<Image> = [];
   user: User | null = null;
@@ -104,9 +104,10 @@ export default class Profile extends Vue {
     this.imgsSrc = {};
     this.$store
       .dispatch("user/bindUsersRef")
-      .then(() => {
-        this.user = this.getUserById(this.userId);
-      })
+      .then(
+        s =>
+          (this.user = s.find(({ id }: { id: string }) => id === this.userId))
+      )
       .catch(this.showError);
 
     this.$store
