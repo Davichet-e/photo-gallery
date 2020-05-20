@@ -45,7 +45,7 @@
       <b-overlay
         v-for="(item, i) in items"
         :key="i"
-        :show="route !== 'settings' && loaded < 2"
+        :show="route !== 'settings' && loaded < Math.floor(items.length / 5)"
         rounded="sm"
       >
         <router-link
@@ -286,8 +286,6 @@ export default class About extends Vue {
   }
 
   addTag() {
-    console.log(this.addTagText);
-
     this.$store.dispatch("tag/addTag", this.addTagText);
   }
 
@@ -309,7 +307,6 @@ export default class About extends Vue {
   }
 
   handleActivate(tag: string) {
-    console.log(this.tagsSelected[tag]);
     if (this.tagsSelected[tag]) {
       this.tagsSelected[tag] = false;
     } else {

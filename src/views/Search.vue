@@ -40,7 +40,7 @@
       <b-overlay
         v-for="element in elements"
         :key="element.id"
-        :show="loaded < 2"
+        :show="loaded < Math.floor(elements.length / 5)"
         rounded="sm"
       >
         <router-link

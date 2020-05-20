@@ -104,11 +104,8 @@ export const auth: Module<AuthState, unknown> = {
         .then(() => dispatch("authUser"));
     },
 
-    async signOut({ commit, state }) {
-      console.log(state.authUser);
-
+    async signOut({ commit }) {
       await firebase.auth().signOut();
-      console.log(state.authUser);
 
       commit("SET_AUTH_USER", null);
     }

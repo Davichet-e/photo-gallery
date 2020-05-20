@@ -13,6 +13,7 @@
         <b-col class="d-flex justify-content-center">
           <div class="mx-3" v-b-tooltip.hover="'Images uploaded'">
             <b-icon-card-image class="mr-1"></b-icon-card-image>
+            <!-- TODO -->
             <small>{{ 50 }}</small>
           </div>
 
@@ -32,9 +33,9 @@
           </div>
         </b-col>
         <b-col class="d-flex flex-row-reverse mb-3 mr-3">
-          <b-button pill size="sm" variant="success" class="ml-2"
-            >Donate</b-button
-          >
+          <b-button pill size="sm" variant="success" class="ml-2">
+            Donate
+          </b-button>
           <b-button pill size="sm" variant="info">Follow</b-button>
         </b-col>
       </b-row>
@@ -62,7 +63,8 @@
       <b-overlay
         v-for="image in getImages"
         :key="image.id"
-        :show="loaded < 2"
+        :show="loaded < Math.floor(getImages.length / 5)"
+        @load="loaded++"
         rounded="sm"
       >
         <router-link :to="'/images/' + image.id" class="item">
