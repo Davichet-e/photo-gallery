@@ -9,111 +9,64 @@
         <b-icon-camera></b-icon-camera>
       </b-button>
       <b-button
-        v-b-modal.edit-modal
-        v-b-tooltip.bottom="'Edit photos'"
+        v-b-modal.manage-tags
+        v-b-tooltip.bottom="'Manage tags'"
+        @click="setManageTags"
         variant="success"
       >
-        <b-icon-pencil></b-icon-pencil>
+        <b-icon-tag></b-icon-tag>
       </b-button>
-
-      <b-modal
-        id="upload-modal"
-        class="rounded"
-        header-bg-variant="dark"
-        header-text-variant="light"
-        body-bg-variant="dark"
-        body-text-variant="light"
-        footer-bg-variant="dark"
-        centered
-        title="Upload photo"
-        @ok="handleUpload"
-        footer-text-variant="secondary"
-      >
-        <b-form>
-          <b-file v-model="file" accept="image/*" id="file-input"></b-file>
-        </b-form>
-        <p class="mb-4 constraints-text">
-          The file must have 2000px at his minimum side
-        </p>
-
-        <p class="tags-text">Select #tags:</p>
-
-        <div class="modal-tags">
-          <b-badge
-            v-for="(_i, tag) of tags"
-            :key="tag"
-            @click="handleActivate(tag)"
-            class="mx-2 mt-2"
-            :variant="tags[tag] ? 'success' : 'secondary'"
-            >{{ tag }}</b-badge
-          >
-          <b-badge @click="addTag" class="mx-2 mt-2" variant="info">
-            <!-- TODO -->
-            <b-icon-plus></b-icon-plus>
-          </b-badge>
-        </div>
-
-        <template v-slot:modal-footer="{ ok }">
-          <p class="tags-text mr-auto">
-            By uploading it you accept our
-            <a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ"
-              >Terms and Conditions</a
-            >
-          </p>
-
-          <b-button size="sm" variant="success" @click="ok()">Upload</b-button>
-        </template>
-      </b-modal>
-
       <b-nav-item
         class="border-left border-bottom rounded-left"
-        :active="routes === 'myphotos'"
+        :active="route === 'myphotos'"
         to="/about/myphotos"
         >My Photos</b-nav-item
       >
 
       <b-nav-item
         class="border-bottom"
-        :active="routes === 'following'"
+        :active="route === 'following'"
         to="/about/following"
         >Following</b-nav-item
       >
       <b-nav-item
         class="border-right border-bottom rounded-right"
-        :active="routes === 'settings'"
+        :active="route === 'settings'"
         to="/about/settings"
         >Settings</b-nav-item
       >
     </b-nav>
     <div
       :class="{
-        'gallery-container': routes === 'myphotos',
-        'users-container': routes === 'following'
+        'gallery-container': route === 'myphotos',
+        'users-container': route === 'following'
       }"
     >
       <b-overlay
-        v-for="(image, i) in images"
+        v-for="(item, i) in items"
         :key="i"
-        :show="routes !== 'settings' && loaded < 2"
+        :show="route !== 'settings' && loaded < 2"
         rounded="sm"
       >
         <router-link
-          v-show="routes === 'myphotos' || routes === 'following'"
-          :to="routes === 'myphotos' ? '/images/' + i : '/profile'"
+          v-show="route === 'myphotos' || route === 'following'"
+          :to="(route === 'myphotos' ? '/images/' : '/profile/') + item.id"
           class="item"
         >
           <img
+            :id="item.id"
             class="gallery-image"
-            v-show="routes === 'myphotos'"
-            :src="image"
+            v-show="route === 'myphotos'"
+            src=""
             alt="image"
-            @load="loaded++"
+            @error="updateImg"
           />
           <b-card
-            v-show="routes === 'following'"
-            :title="'User' + i"
-            overlay
-            :img-src="image"
+            v-show="route === 'following'"
+            :title="item.username"
+            :overlay="item.profilePicURL !== '#'"
+            bg-variant="dark"
+            :img-src="item.profilePicURL === '#' ? '' : item.profilePicURL"
             img-alt="Image"
             tag="article"
             class="mb-2"
@@ -126,64 +79,272 @@
           </b-card>
         </router-link>
       </b-overlay>
-      <h1 v-show="routes === 'settings'" class="settings-header">
-        {{ users }}
-      </h1>
     </div>
+    <!-- Upload Modal -->
+    <b-modal
+      id="upload-modal"
+      class="rounded"
+      header-bg-variant="dark"
+      header-text-variant="light"
+      body-bg-variant="dark"
+      body-text-variant="light"
+      footer-bg-variant="dark"
+      centered
+      title="Upload photo"
+      @ok="handleUpload"
+      footer-text-variant="secondary"
+    >
+      <b-form>
+        <b-input
+          required
+          class="my-3"
+          placeholder="Title"
+          v-model="title"
+        ></b-input>
+        <b-textarea
+          required
+          class="my-2"
+          placeholder="Description"
+          v-model="description"
+        ></b-textarea>
+        <b-file
+          id="file-input"
+          class="my-4"
+          v-model="file"
+          accept="image/*"
+        ></b-file>
+      </b-form>
+      <p class="mb-4 constraints-text">
+        The file must have 2000px at his minimum side
+      </p>
+
+      <p class="tags-text">Select #tags:</p>
+
+      <div class="modal-tags">
+        <b-badge
+          v-for="{ value, id } of tags"
+          :key="id"
+          @click="handleActivate(id)"
+          class="mx-2 mt-2"
+          :variant="tagsSelected[id] ? 'success' : 'secondary'"
+          >{{ value }}</b-badge
+        >
+        <b-badge class="mx-2 mt-2" variant="info">
+          <!-- TODO -->
+          <b-icon-plus></b-icon-plus>
+        </b-badge>
+      </div>
+
+      <template v-slot:modal-footer="{ ok }">
+        <p class="tags-text mr-auto">
+          By uploading it you accept our
+          <a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+            >Terms and Conditions</a
+          >
+        </p>
+
+        <b-button size="sm" variant="success" @click="ok()">Upload</b-button>
+      </template>
+    </b-modal>
+    <!-- Manage tags Modal -->
+    <b-modal
+      id="manage-tags"
+      class="rounded"
+      header-bg-variant="dark"
+      header-text-variant="light"
+      body-bg-variant="dark"
+      body-text-variant="light"
+      footer-bg-variant="dark"
+      centered
+      title="Manage tags"
+      @ok="manageTags"
+      footer-text-variant="secondary"
+      ok-title="Save"
+      ok-variant="success"
+      ok-only
+    >
+      <div class="modal-tags">
+        <b-badge
+          v-for="tag of manageTags"
+          :key="tag.id"
+          @click="removeTag(tag)"
+          class="editable-tag"
+          >{{ tag.value }}</b-badge
+        >
+        <b-badge class="mx-2 mt-2" variant="info">
+          <b-icon-plus></b-icon-plus>
+        </b-badge>
+      </div>
+
+      <b-form inline size="sm" class="mt-3 w-100" @submit.prevent="addTag">
+        <b-input
+          size="sm"
+          v-model="addTagText"
+          placeholder="Add Tags..."
+        ></b-input>
+        <b-btn type="submit" variant="info" size="sm">Add</b-btn>
+      </b-form>
+    </b-modal>
   </div>
 </template>
 
 <script lang="ts">
 import "reflect-metadata";
 import { Component, Vue, Prop } from "vue-property-decorator";
+import { mapState, mapGetters } from "vuex";
+import { Image, FirestoreRef } from "../store/modules/images";
+import { User } from "../store/modules/users";
+import { firestore } from "firebase/app";
+import { Tag } from "../store/modules/tags";
+import { db } from "../firebase";
 
-@Component
+@Component({
+  computed: {
+    ...mapState("auth", ["authUser"]),
+    ...mapState("tag", ["tags"]),
+    ...mapGetters("image", [
+      "getImagesOfUser",
+      "getImageURL",
+      "numberOfImagesOfUser"
+    ]),
+    ...mapGetters("auth", ["userReference"]),
+    ...mapGetters("user", ["usersFollowedBy"])
+  }
+})
 export default class About extends Vue {
-  @Prop({ default: "myphotos" }) routes!: string;
+  @Prop({ default: "myphotos" }) route!: string;
+  public authUser!: User | null;
+  public userReference!: FirestoreRef | null;
+  public tags!: Array<Tag>;
+  public getImagesOfUser!: (id: string) => Array<Image>;
+  public getImageURL!: (id: string) => Promise<string>;
+  public numberOfImagesOfUser!: (id: string) => number;
+  public usersFollowedBy!: (id: string) => Array<User>;
 
-  loaded = 0;
+  loaded = 30;
+  followingUsers: Array<User> = [];
+  manageTags: Array<Tag> = [];
+  addTagText = "";
+  tagsSelected: Record<string, boolean> = {};
   file: File | null = null;
-  tags: Record<string, boolean> = {
-    dark: false,
-    white: false,
-    christmas: false,
-    love: false,
-    trending: false,
-    chulipuni: false
-  };
-  images = [
-    "https://picsum.photos/3000/1700",
-    "https://picsum.photos/3000/1500",
-    "https://picsum.photos/3000/1600",
-    "https://picsum.photos/3000/1700",
-    "https://picsum.photos/3200/1700",
-    "https://picsum.photos/3000/1702",
-    "https://picsum.photos/3000/1100",
-    "https://picsum.photos/3000/1300"
-  ];
+  images: Array<Image> = [];
+  imgsSrc: Record<string, string> = {};
+  tagsToAdd: Array<Tag> = [];
+  title = "";
+  description = "";
+  imagesSrc!: Record<string, string>;
+  image!: string;
 
-  handleActivate(tag: string) {
-    if (this.tags[tag]) {
-      this.tags[tag] = false;
-    } else {
-      this.tags[tag] = true;
-    }
+  created() {
+    this.$store
+      .dispatch("user/bindUsersRef")
+      .then(
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        () => (this.followingUsers = this.usersFollowedBy(this.authUser!.id))
+      )
+      .catch(this.showError);
+
+    this.$store
+      .dispatch("tag/bindTagsRef")
+      .then(() => {
+        this.tags.forEach(({ id }) => (this.tagsSelected[id] = false));
+      })
+      .catch(this.showError);
+
+    this.$store
+      .dispatch("image/bindImagesRef")
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      .then(() => this.getImagesOfUser(this.authUser!.id!))
+      .then(images => {
+        this.images = images;
+        images.forEach(({ id }) => {
+          this.getImageURL(id).then(url => (this.imgsSrc[id] = url));
+        });
+      })
+      .catch(this.showError);
   }
 
-  handleUpload(/* _bvModalEvt: BvModalEvent*/) {
-    for (const tag in this.tags) this.tags[tag] = false;
+  get getImages() {
+    return this.images;
+  }
+
+  get following() {
+    return this.authUser ? this.followingUsers : [];
+  }
+
+  get items() {
+    return this.route === "myphotos" ? this.getImages : this.following;
+  }
+
+  showError(error: Error, variant = "danger") {
+    this.$bvToast.toast(error.message, {
+      title: "Auth error",
+      variant: variant,
+      solid: true,
+      autoHideDelay: 2000
+    });
   }
 
   addTag() {
-    // TODO
+    console.log(this.addTagText);
+
+    this.$store.dispatch("tag/addTag", this.addTagText);
   }
 
-  get users() {
-    return this.$store.getters["user/getUsers"];
+  removeTag(tag: Tag) {
+    this.manageTags.splice(this.manageTags.indexOf(tag), 1);
   }
 
-  created() {
-    this.$store.dispatch("user/bindUsersRef");
+  setManageTags() {
+    this.manageTags = this.tags.slice();
+  }
+
+  updateImg(t: Event) {
+    const image = t.target as HTMLImageElement;
+    image.src = this.imgsSrc[image.id] || "#";
+  }
+
+  handleManageTags() {
+    // this.$store.dispatch()
+  }
+
+  handleActivate(tag: string) {
+    console.log(this.tagsSelected[tag]);
+    if (this.tagsSelected[tag]) {
+      this.tagsSelected[tag] = false;
+    } else {
+      this.tagsSelected[tag] = true;
+    }
+  }
+
+  handleUpload() {
+    const tags: Array<FirestoreRef> = [];
+    for (const { id } of this.tags) {
+      if (this.tagsSelected[id]) {
+        tags.push(db.collection("tags").doc(id));
+        this.tagsSelected[id] = false;
+      }
+    }
+    if (this.userReference && this.authUser) {
+      if (this.numberOfImagesOfUser(this.authUser.id) <= 50) {
+        this.$store
+          .dispatch("image/addPhoto", {
+            image: {
+              author: this.userReference,
+              title: this.title,
+              description: this.description,
+              date: firestore.Timestamp.now(),
+              comments: [],
+              tags,
+              likes: 0,
+              dislikes: 0
+            },
+            file: this.file
+          })
+          .then(() => this.$router.go(0));
+      } else
+        this.showError(new Error("You have reached the photo upload limit."));
+    }
   }
 }
 </script>
@@ -214,6 +375,14 @@ div > span:hover {
 .settings-header {
   text-align: center;
   color: peru;
+}
+
+.editable-tag {
+  margin: 0.5em 0.5em 0 0.5em;
+}
+
+.editable-tag:hover {
+  background-color: brown;
 }
 
 .users-container {

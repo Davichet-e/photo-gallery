@@ -1,8 +1,8 @@
 <template>
   <div id="image">
     <main>
-      <img class="photo" :src="image ? image.url : '#'" alt />
-      <h5 class="mt-5">
+      <img class="photo" :src="imageURL" alt />
+      <h5 class="golden-title mt-5">
         Comments
         <b-icon-chat-dots class="ml-1 mr-3"></b-icon-chat-dots>
         <b-icon-plus-circle-fill
@@ -29,13 +29,13 @@
             >
             <b-button
               @click="commentActive = false"
-              class="ml-auto mt-2"
+              class="ml-auto mt-2 mx-2"
               size="sm"
               >Cancel</b-button
             >
             <b-button
               type="submit"
-              class="ml-auto mt-2"
+              class="ml-auto mt-2 mx-2"
               variant="info"
               size="sm"
               >Comment</b-button
@@ -46,13 +46,13 @@
 
       <b-list-group>
         <b-list-group-item
-          class="comments-info"
+          class="comments-information"
           v-for="[index, { author, date, text }] of comments.entries()"
           :key="index"
         >
           <div class="d-flex">
             <b-avatar to="../profile" size="sm" class="mr-2"></b-avatar>
-            <h6 class="mr-2">{{ author.username }}</h6>
+            <h6 class="comment-author mr-2">{{ author.username }}</h6>
             <small>{{ date.toDate().toLocaleString() }}</small>
           </div>
 
@@ -61,19 +61,31 @@
       </b-list-group>
     </main>
     <b-list-group class="shadow-sm">
-      <b-list-group-item class="author-info">
+      <b-list-group-item class="author-information">
         <b-avatar></b-avatar>
         <div>
-          <h5>Author / {{ photosUploaded }} photos</h5>
-          <b-button size="sm" class="rounded-pill" variant="dark"
-            >Follow</b-button
+          <h5 class="golden-title">
+            {{ image ? image.author.username : "" }} /
+            {{ photosUploaded }} photos
+          </h5>
+          <template
+            v-if="authUser && image ? image.author.id !== authUser.id : true"
           >
-          <b-button size="sm" class="rounded-pill" variant="success"
-            >Donate</b-button
-          >
+            <b-button
+              size="sm"
+              class="rounded-pill mx-2"
+              :variant="itFollows ? 'info' : 'dark'"
+              @click="handleFollow"
+            >
+              Follow{{ itFollows ? "ed" : "" }}
+            </b-button>
+            <b-button size="sm" class="rounded-pill mx-2" variant="success"
+              >Donate</b-button
+            >
+          </template>
         </div>
       </b-list-group-item>
-      <b-list-group-item class="vote-info">
+      <b-list-group-item class="vote-information">
         <b-button
           @click="handleVote('likes')"
           v-b-tooltip.hover="'Like'"
@@ -89,6 +101,7 @@
         <b-button
           @click="handleVote('dislikes')"
           v-b-tooltip.hover="'Dislike'"
+          class="mx-2"
           size="sm"
           pill
           :variant="selected === 'dislikes' ? 'danger' : 'dark'"
@@ -102,64 +115,229 @@
           variant="light"
           v-b-tooltip.hover="'Share'"
           size="sm"
-          class="rounded-pill"
+          class="rounded-pill mx-2"
         >
           <b-icon-reply></b-icon-reply>
         </b-button>
       </b-list-group-item>
-      <b-list-group-item class="other-info">
-        <b-badge
-          v-for="tag of tags"
-          :key="tag"
-          class="mx-2 mt-2"
-          variant="secondary"
-          >{{ tag }}</b-badge
+      <b-list-group-item class="other-information">
+        <h4 v-if="!editing" class="img-title">
+          {{ imageTitle }}
+        </h4>
+        <b-input v-else class="w-50" v-model="imageTitle">
+          {{ image.title }}
+        </b-input>
+        <template
+          v-if="authUser && image ? image.author.id === authUser.id : false"
         >
+          <b-button
+            v-b-tooltip.hover="'Edit photo'"
+            class="edit-button"
+            size="sm"
+            pill
+            variant="info"
+            @click.once="
+              $store
+                .dispatch('tag/bindTagsRef')
+                .then(() => (this.tagsToAdd = this.imageTags.slice()))
+            "
+            @click="editPhoto"
+          >
+            <b-icon-screwdriver></b-icon-screwdriver>
+          </b-button>
+          <b-button
+            v-b-tooltip.hover="'Delete photo'"
+            class="delete-button"
+            size="sm"
+            pill
+            variant="danger"
+            v-b-modal.delete-tags
+          >
+            <b-icon-x></b-icon-x>
+          </b-button>
+        </template>
+        <p v-if="!editing" class="img-description">
+          {{ imageDescription }}
+        </p>
+        <b-textarea v-else v-model="imageDescription" class="mt-2"></b-textarea>
+        <div class="tags mt-2">
+          <b-badge
+            v-for="{ id, value } of chooseTags"
+            class="mx-2"
+            :key="id"
+            variant="secondary"
+          >
+            {{ value }}
+          </b-badge>
+          <b-badge
+            v-if="editing"
+            v-b-modal.edit-tags
+            class="edit-tag-button"
+            variant="info"
+          >
+            <b-icon-plus></b-icon-plus>
+          </b-badge>
+        </div>
+        <div v-if="editing" class="mt-2 ml-2">
+          <b-button
+            variant="success"
+            pill
+            class="mr-2"
+            size="sm"
+            @click="saveEdit"
+          >
+            Save
+          </b-button>
+          <b-button variant="dark" pill size="sm" @click="editing = false">
+            Cancel
+          </b-button>
+        </div>
       </b-list-group-item>
     </b-list-group>
+    <b-modal
+      id="delete-tags"
+      body-bg-variant="dark"
+      header-bg-variant="dark"
+      footer-bg-variant="dark"
+      body-text-variant="white"
+      header-text-variant="white"
+      footer-text-variant="white"
+      title="Delete photo"
+      @ok="deletePhoto"
+    >
+      Are you sure?</b-modal
+    >
+    <b-modal
+      id="edit-tags"
+      body-bg-variant="dark"
+      header-bg-variant="dark"
+      footer-bg-variant="dark"
+      body-text-variant="white"
+      header-text-variant="white"
+      footer-text-variant="white"
+      title="Edit tags"
+      @cancel="resetEditTags"
+      @close="resetEditTags"
+      @ok="saveTags"
+    >
+      <b-badge
+        v-for="tag of tagsToAdd"
+        class="editable-tag"
+        :key="tag.id"
+        @click="removeTag(tag)"
+        variant="secondary"
+      >
+        {{ tag.value }}
+      </b-badge>
+      <hr />
+      <h6>Add Tags</h6>
+      <b-input type="text" size="sm" v-model="searchTextInput" />
+      <b-badge
+        v-for="tag of searchTag"
+        class="add-tag"
+        @click="tagsToAdd.push(tag)"
+        :key="tag.id"
+        variant="secondary"
+      >
+        {{ tag.value }}
+      </b-badge>
+    </b-modal>
   </div>
 </template>
 
 <script lang="ts">
-import Component from "vue-class-component";
-import Vue from "vue";
+import "reflect-metadata";
+import { Component, Prop, Vue } from "vue-property-decorator";
 import { firestore } from "firebase/app";
 
-import { Image } from "@/store/modules/images";
-import { mapState } from "vuex";
+import { Image, Comment, FirestoreRef } from "@/store/modules/images";
+import { mapState, mapGetters } from "vuex";
 import { User } from "../store/modules/users";
+import { Tag } from "../store/modules/tags";
 
 @Component({
-  computed: mapState("auth", ["authUser"])
+  computed: {
+    ...mapState("auth", ["authUser"]),
+    ...mapState("tag", ["tags"]),
+    ...mapGetters("auth", ["userReference"]),
+    ...mapGetters("image", ["getImageById", "getImageURL"]),
+    ...mapGetters("user", ["isBeingFollowed"])
+  }
 })
 export default class ImageDetails extends Vue {
   public authUser!: User | null;
+  public userReference!: FirestoreRef;
+  public tags!: Array<Tag>;
+  public getImageById!: (id: string) => Image;
+  public getImageURL!: (id: string) => Promise<string>;
+  public isBeingFollowed!: (user: User, followingId: string) => boolean;
+  @Prop({ required: true }) photoId!: string;
+
+  itFollows = false;
+  imageTags: Array<Tag> = [];
+  editing = false;
+  image: Image | null = null;
+  tagsToAdd: Array<Tag> = [];
+  searchTextInput = "";
+  imageTitle = "";
+  imageDescription = "";
+  imageURL = "#";
   commentState: boolean | null = null;
   commentText = "";
   commentActive = false;
   photosUploaded = Math.floor(Math.random() * 100);
-  likes = Math.floor(Math.random() * 10000);
-  dislikes = Math.floor(Math.random() * 10000);
+  likes = 0;
+  dislikes = 0;
   selected: string | null = null;
-  tags: Array<string> = [
-    "dark",
-    "white",
-    "christmas",
-    "love",
-    "trending",
-    "chulipuni"
-  ];
 
   created() {
-    this.$store.dispatch("image/bindImagesRef");
-  }
-  get image(): Image {
-    return this.$store.getters["image/getImageById"]("juF5H0NKStoC8m5KHQQE");
+    // RENDER ONLY THIS IMAGE
+    this.$store.dispatch("image/bindImagesRef").then(() => {
+      this.image = this.getImageById(this.photoId);
+      this.imageTitle = this.image.title;
+      this.imageDescription = this.image.description;
+      this.imageTags = this.image.tags;
+
+      this.likes = this.image.likes;
+      this.dislikes = this.image.dislikes;
+      this.itFollows = this.isBeingFollowed(
+        this.image.author as User,
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        this.authUser!.id!
+      );
+      this.getImageURL(this.photoId)
+        .then(url => (this.imageURL = url))
+        .catch(this.showError);
+    });
   }
 
   get comments() {
-    if (this.image) return this.image.comments;
-    return [];
+    return this.image ? this.image.comments : [];
+  }
+
+  resetEditTags() {
+    this.tagsToAdd = this.imageTags.slice();
+  }
+
+  showError(error: Error, variant = "danger") {
+    this.$bvToast.toast(error.message, {
+      title: "Auth error",
+      variant: variant,
+      solid: true,
+      autoHideDelay: 2000
+    });
+  }
+
+  get searchTag() {
+    return this.tags.filter(
+      ({ value, id }) =>
+        value.includes(this.searchTextInput) &&
+        !this.tagsToAdd.some(({ id: tagId }) => tagId === id)
+    );
+  }
+
+  removeTag(tag: Tag) {
+    this.tagsToAdd.splice(this.tagsToAdd.indexOf(tag), 1);
   }
 
   handleVote(type: string) {
@@ -187,29 +365,98 @@ export default class ImageDetails extends Vue {
 
       this.selected = type;
     }
+    this.$store.dispatch("image/voteImage", {
+      photoId: this.photoId,
+      likes: this.likes,
+      dislikes: this.dislikes
+    });
   }
-  addComment(/* evt: Event */) {
-    if (this.commentText.length) {
+
+  saveTags() {
+    this.imageTags = this.tagsToAdd.slice();
+  }
+
+  addComment() {
+    if (this.authUser && this.image) {
+      if (this.commentText.length) {
+        console.log(this.authUser);
+        const comment = {
+          author: this.userReference,
+          date: firestore.Timestamp.now(),
+          text: this.commentText
+        } as Comment;
+        this.image.comments.push({ ...comment, author: this.authUser });
+
+        this.$store
+          .dispatch("image/addCommentToImg", {
+            photoId: this.photoId,
+            comment
+          })
+          .then(() => {
+            this.commentActive = false;
+            this.commentText = "";
+          })
+          .catch(this.showError);
+      } else this.commentState = false;
+    } else {
+      this.showError(new Error("You must be logged in to comment"));
+    }
+  }
+
+  get chooseTags() {
+    // FIXME
+    return this.editing ? this.imageTags : this.image?.tags;
+  }
+
+  editPhoto() {
+    this.editing = true;
+    this.tagsToAdd = this.imageTags.slice();
+  }
+
+  deletePhoto() {
+    this.$store
+      .dispatch("image/deleteImage", this.photoId)
+      .then(() => this.$router.push("/about"))
+      .catch(this.showError);
+  }
+
+  handleFollow() {
+    if (this.authUser) {
       this.$store
-        .dispatch("image/addCommentToImg", {
+        .dispatch("user/followUser", {
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          id: this.image!.author.id,
+          followingId: this.authUser.id,
+          method: this.itFollows ? "unfollow" : "follow"
+        })
+        .then(() =>
+          this.itFollows ? (this.itFollows = false) : (this.itFollows = true)
+        )
+        .catch(this.showError);
+    } else {
+      this.showError(new Error("You must be logged in to follow another user"));
+    }
+  }
+
+  saveEdit() {
+    if (this.image)
+      this.$store
+        .dispatch("image/editImage", {
+          title: this.imageTitle,
+          description: this.imageDescription,
           photoId: this.image.id,
-          comment: {
-            author: this.$store.getters["auth/userReference"],
-            date: firestore.Timestamp.fromDate(new Date()),
-            text: this.commentText
-          }
+          tags: this.imageTags
         })
         .then(() => {
-          this.commentActive = false;
-          this.commentText = "";
-        });
-    } else this.commentState = false;
+          this.editing = false;
+        })
+        .catch(this.showError);
   }
 }
 </script>
 
 <style scoped>
-h6 + small {
+.comment-author + small {
   color: grey;
 }
 .add-comment-icon {
@@ -226,16 +473,13 @@ h6 + small {
 .button-down {
   background-color: rgb(90, 7, 7);
 }
-hr {
-  background-color: whitesmoke;
-}
 
-h5 {
+.golden-title {
   color: goldenrod;
   margin-bottom: 10px;
 }
 
-h6 {
+.comment-author {
   color: yellowgreen;
 }
 
@@ -246,10 +490,6 @@ img {
   max-width: 100%;
   min-width: 60%;
   /* height: auto; */
-}
-
-button {
-  margin: 0px 5px;
 }
 
 #image {
@@ -283,18 +523,66 @@ main .list-group-item div:last-child {
   color: rgb(165, 158, 158);
 }
 
-[class$="-info"] {
+[class$="-information"] {
   border: 1px solid #181818;
-  display: flex;
+  /* display: flex; */
   background-color: #222222;
 }
-
-.author-info > * {
+.author-information {
+  display: flex;
+}
+.author-information > * {
   margin-right: 10px;
 }
 
-.other-info {
+.tags {
   display: flex;
   flex-wrap: wrap;
+}
+
+.edit-tag-button {
+  margin-left: 1em;
+  cursor: pointer;
+}
+
+.edit-button {
+  position: absolute;
+  top: 5px;
+  right: 25px;
+}
+
+.delete-button {
+  position: absolute;
+  top: 5px;
+  right: 75px;
+}
+
+.img-title {
+  width: 50%;
+  color: burlywood;
+}
+
+.img-description {
+  color: rgb(206, 204, 204);
+}
+
+.editable {
+  background-color: whitesmoke;
+  color: black;
+}
+
+.editable-tag,
+.add-tag {
+  margin-right: 2em;
+  margin-top: 1em;
+  cursor: pointer;
+}
+
+.add-tag:hover {
+  background-color: cadetblue;
+}
+
+.editable-tag:hover {
+  background-color: brown;
 }
 </style>

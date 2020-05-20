@@ -1,7 +1,7 @@
 <template>
   <div>
     <div id="profile">
-      <h1>{{ data.name }}</h1>
+      <h1>{{ getUser.username }}</h1>
       <p>{{ data.description }}</p>
       <b-icon-people-circle
         variant="dark"
@@ -13,7 +13,7 @@
         <b-col class="d-flex justify-content-center">
           <div class="mx-3" v-b-tooltip.hover="'Images uploaded'">
             <b-icon-card-image class="mr-1"></b-icon-card-image>
-            <small>{{ data.imagesUploaded }}</small>
+            <small>{{ 50 }}</small>
           </div>
 
           <div class="mx-3" v-b-tooltip.hover="'Downloads'">
@@ -28,7 +28,7 @@
 
           <div class="mx-3" v-b-tooltip.hover="'Followers'">
             <b-icon-people-fill class="mr-1"></b-icon-people-fill>
-            <small>{{ data.followers }}</small>
+            <small>{{ getUser.followers.length }}</small>
           </div>
         </b-col>
         <b-col class="d-flex flex-row-reverse mb-3 mr-3">
@@ -48,24 +48,25 @@
       <b-nav-item
         @click="handleActive('popular')"
         :active="active === 'popular'"
-        >Most Popular</b-nav-item
       >
-      <b-nav-item @click="handleActive('recent')" :active="active === 'recent'"
-        >Most Recent</b-nav-item
-      >
-      <b-nav-item @click="handleActive('about')" :active="active === 'about'"
-        >About Me</b-nav-item
-      >
+        Most Popular
+      </b-nav-item>
+      <b-nav-item @click="handleActive('recent')" :active="active === 'recent'">
+        Most Recent
+      </b-nav-item>
+      <b-nav-item @click="handleActive('about')" :active="active === 'about'">
+        About Me
+      </b-nav-item>
     </b-nav>
-    <div class="gallery-container">
+    <div v-if="active !== 'about'" class="gallery-container">
       <b-overlay
-        v-for="(image, i) in images"
-        :key="i"
+        v-for="image in getImages"
+        :key="image.id"
         :show="loaded < 2"
         rounded="sm"
       >
-        <router-link :to="'/images/' + i" class="item">
-          <img :src="image" alt="image" @load="loaded++" />
+        <router-link :to="'/images/' + image.id" class="item">
+          <img :id="image.id" src="" alt="image" @error="updateImg" />
         </router-link>
       </b-overlay>
     </div>
@@ -73,11 +74,67 @@
 </template>
 
 <script lang="ts">
-import Component from "vue-class-component";
-import Vue from "vue";
+import "reflect-metadata";
+import { Component, Vue, Prop } from "vue-property-decorator";
+import { mapGetters } from "vuex";
+import { User } from "../store/modules/users";
+import { Image, sortImagesByPopularity } from "../store/modules/images";
 
-@Component
+@Component({
+  computed: {
+    ...mapGetters("image", ["getImagesOfUser", "getImageURL"]),
+    ...mapGetters("user", ["getUserById"])
+  }
+})
 export default class Profile extends Vue {
+  public getImagesOfUser!: (id: string) => Array<Image>;
+  public getImageURL!: (id: string) => Promise<string>;
+  public getUserById!: (id: string) => User;
+  @Prop({ required: true }) userId!: string;
+
+  images: Array<Image> = [];
+  user: User | null = null;
+  imgsSrc!: Record<string, string>;
+  loaded = 40;
+  active = "popular";
+
+  created() {
+    this.imgsSrc = {};
+    this.$store
+      .dispatch("user/bindUsersRef")
+      .then(() => {
+        this.user = this.getUserById(this.userId);
+      })
+      .catch(this.showError);
+
+    this.$store
+      .dispatch("image/bindImagesRef")
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      .then(() => this.getImagesOfUser(this.userId))
+      .then(images => {
+        this.images = images;
+        images.forEach(({ id }) => {
+          this.getImageURL(id).then(url => (this.imgsSrc[id] = url));
+        });
+      })
+      .catch(this.showError);
+  }
+
+  get getImages() {
+    return this.active === "popular"
+      ? sortImagesByPopularity(this.images)
+      : this.images;
+  }
+
+  get getUser() {
+    return this.user ?? { followers: [] };
+  }
+
+  updateImg(t: Event) {
+    const image = t.target as HTMLImageElement;
+    image.src = this.imgsSrc[image.id] ?? "#";
+  }
+
   // Faked data
   data = {
     name: "Turno",
@@ -88,22 +145,19 @@ export default class Profile extends Vue {
     downloads: Math.floor(Math.random() * 10000),
     comments: Math.floor(Math.random() * 10000)
   };
-  loaded = 0;
-  active = "popular";
+
   handleActive(id: string) {
     this.active = id;
   }
 
-  images: Array<string> = [
-    "https://picsum.photos/3000/1700",
-    "https://picsum.photos/3000/1500",
-    "https://picsum.photos/3000/1600",
-    "https://picsum.photos/3000/1700",
-    "https://picsum.photos/3200/1700",
-    "https://picsum.photos/3000/1702",
-    "https://picsum.photos/3000/1100",
-    "https://picsum.photos/3000/1300"
-  ];
+  showError(error: Error, variant = "danger") {
+    this.$bvToast.toast(error.message, {
+      title: "Auth error",
+      variant: variant,
+      solid: true,
+      autoHideDelay: 2000
+    });
+  }
 }
 </script>
 

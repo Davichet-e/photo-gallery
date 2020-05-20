@@ -2,8 +2,7 @@ import Vue from "vue";
 import VueRouter, { Route } from "vue-router";
 import Home from "../views/Home.vue";
 import store from "@/store/index";
-import { user } from "@/store/modules/users";
-
+import "firebase/auth";
 Vue.use(VueRouter);
 
 const routes = [
@@ -16,7 +15,7 @@ const routes = [
     path: "/about",
     name: "About",
     props: (route: Route) => ({
-      routes: route.name === "About" ? undefined : route.name?.toLowerCase()
+      route: route.name === "About" ? undefined : route.name?.toLowerCase()
     }),
     meta: { requiresAuth: true },
     children: [
@@ -59,7 +58,8 @@ const routes = [
       import(/* webpackChunkName: "signup" */ "../views/Auth.vue")
   },
   {
-    path: "/profile",
+    path: "/profile/:userId",
+    props: true,
     name: "Profile",
     component: () =>
       import(/* webpackChunkName: "profile" */ "../views/Profile.vue")
@@ -72,7 +72,8 @@ const routes = [
       import(/* webpackChunkName: "search" */ "../views/Search.vue")
   },
   {
-    path: "/images/:id",
+    path: "/images/:photoId",
+    props: true,
     name: "Image",
     component: () =>
       import(/* webpackChunkName: "image" */ "../views/Image.vue")
@@ -93,11 +94,11 @@ const router = new VueRouter({
 });
 
 router.beforeEach((to, _from, next) => {
-  if (
-    to.matched.some(({ meta }) => meta.requiresAuth) &&
-    !store.getters["auth/userIsLogged"]
-  ) {
-    next("login");
+  if (to.matched.some(({ meta }) => meta.requiresAuth)) {
+    store.dispatch("auth/authUser").then((userIsLogged: boolean) => {
+      if (userIsLogged) next();
+      else next("login");
+    });
   } else {
     next();
   }

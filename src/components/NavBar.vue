@@ -21,7 +21,10 @@
             </b-button>
           </b-input-group-prepend>
 
-          <b-form-input placeholder="Search"></b-form-input>
+          <b-form-input
+            v-model="searchTerm"
+            placeholder="Search"
+          ></b-form-input>
 
           <b-input-group-append>
             <b-dd size="sm" variant="light" :text="searchSelected">
@@ -53,14 +56,14 @@
         </b-nav-item>
 
         <b-nav-item
-          v-if="!userIsLogged"
+          v-if="!authUser"
           to="/login"
           class="px-4 nav-links align-self-center my-lg-0 my-sm-2"
           >Login
         </b-nav-item>
 
         <b-nav-item
-          v-if="!userIsLogged"
+          v-if="!authUser"
           to="/signup"
           class="px-2 mx-3 nav-links border rounded align-self-center my-lg-0 my-sm-2"
           href="#"
@@ -114,17 +117,19 @@
 <script lang="ts">
 import Component from "vue-class-component";
 import Vue from "vue";
-import { mapGetters } from "vuex";
+import { mapState } from "vuex";
+import { User } from "firebase";
 
 @Component({
-  computed: mapGetters("auth", ["userIsLogged"])
+  computed: mapState("auth", ["authUser"])
 })
 export default class NavBar extends Vue {
-  public userIsLogged!: boolean;
+  public authUser!: User | null;
   searchSelected = "Images";
+  searchTerm = "";
 
   search(/*evt: Event*/) {
-    // console.log(this.searchSelected);
+    this.$router.push({ name: "Search", query: { order: "recents" } });
   }
 
   signOut() {

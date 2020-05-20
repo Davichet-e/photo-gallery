@@ -7,7 +7,6 @@ import { db } from "@/firebase";
 
 export interface AuthState {
   authUser: User | null;
-  authUserId: string | null;
 }
 
 export interface AuthUser {
@@ -20,33 +19,32 @@ export const auth: Module<AuthState, unknown> = {
   namespaced: true,
 
   state: {
-    authUser: null,
-    authUserId: null
+    authUser: null
   },
 
   getters: {
-    userIsLogged({ authUser }) {
-      return authUser !== null;
-    },
-    userReference: ({ authUserId }) =>
-      authUserId ? db.collection("users").doc(authUserId) : null
+    userIsLogged: () => firebase.auth().onAuthStateChanged,
+    userReference: ({ authUser }) =>
+      authUser ? db.collection("users").doc(authUser.id) : null
   },
 
   actions: {
-    authUser({ commit }) {
-      firebase.auth().onAuthStateChanged(user => {
-        if (user) {
-          const { uid, email, displayName } = user;
-          commit("SET_AUTH_USER", {
-            user: {
+    async authUser({ commit }) {
+      return new Promise(resolve =>
+        firebase.auth().onAuthStateChanged(user => {
+          if (user) {
+            const { uid, email, displayName } = user;
+            commit("SET_AUTH_USER", {
+              id: uid,
               email,
               username: displayName,
-              followers: []
-            } as User,
-            id: uid
-          });
-        }
-      });
+              followers: [],
+              profilePicURL: "#"
+            } as User);
+            resolve(true);
+          } else resolve(false);
+        })
+      );
     },
 
     async registerUserWithEmailAndPassword(
@@ -56,15 +54,21 @@ export const auth: Module<AuthState, unknown> = {
       return firebase
         .auth()
         .createUserWithEmailAndPassword(email, password)
-        .then(user => {
-          return dispatch(
-            "user/addUser",
-            {
-              user: { email, username, followers: [] } as User,
-              id: user.user?.uid
-            },
-            { root: true }
-          );
+        .then(({ user }) => {
+          if (user) {
+            user.updateProfile({ displayName: username });
+            return dispatch(
+              "user/addUser",
+              {
+                id: user.uid,
+                email,
+                username,
+                followers: [],
+                profilePicURL: "#"
+              } as User,
+              { root: true }
+            );
+          }
         })
         .then(() => dispatch("authUser"));
     },
@@ -85,13 +89,13 @@ export const auth: Module<AuthState, unknown> = {
               dispatch(
                 "user/addUser",
                 {
-                  user: {
-                    email,
-                    username: displayName,
-                    followers: []
-                  } as User,
-                  id: uid
-                },
+                  id: uid,
+                  email,
+                  username: displayName,
+                  followers: [],
+                  profilePicURL: "#"
+                } as User,
+
                 { root: true }
               );
             }
@@ -100,15 +104,18 @@ export const auth: Module<AuthState, unknown> = {
         .then(() => dispatch("authUser"));
     },
 
-    async signOut({ commit }) {
+    async signOut({ commit, state }) {
+      console.log(state.authUser);
+
       await firebase.auth().signOut();
-      commit("SET_AUTH_USER", { user: null, id: null });
+      console.log(state.authUser);
+
+      commit("SET_AUTH_USER", null);
     }
   },
   mutations: {
-    SET_AUTH_USER(state: AuthState, { user, id }: { user: User; id: string }) {
+    SET_AUTH_USER(state: AuthState, user: User | null) {
       state.authUser = user;
-      state.authUserId = id;
     }
   }
 };

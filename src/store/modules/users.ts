@@ -2,11 +2,14 @@ import { vuexfireMutations, firestoreAction } from "vuexfire";
 import "firebase/firestore";
 
 import { db } from "@/firebase";
+import { firestore } from "firebase/app";
 
 export interface User {
+  id: string;
   username: string;
   email: string;
-  followers: Array<User>;
+  followers: Array<string>;
+  profilePicURL: string;
 }
 
 export interface UserState {
@@ -24,27 +27,55 @@ export const user = {
     getUsers(state: UserState) {
       return state.users;
     },
-    getUsersUsernames(state: UserState) {
-      return state.users.map(({ username }) => username);
+    getUserById(state: UserState) {
+      return (userId: string) => {
+        console.log(state.users.find(({ id }) => id === userId));
+        return state.users.find(({ id }) => id === userId);
+      };
+    },
+    isBeingFollowed(_state: UserState) {
+      return (user: User, followingId: string) =>
+        user.followers.includes(followingId);
     },
 
-    getUsersEmail(state: UserState) {
-      return state.users.map(({ email }) => email);
+    usersFollowedBy(state: UserState) {
+      return (id: string) =>
+        state.users.filter(({ followers }) =>
+          followers.some(userId => userId === id)
+        );
     }
   },
 
   mutations: vuexfireMutations,
 
   actions: {
-    bindUsersRef: firestoreAction(context =>
-      context.bindFirestoreRef("users", db.collection("users"))
+    bindUsersRef: firestoreAction(({ bindFirestoreRef }) =>
+      bindFirestoreRef("users", db.collection("users"))
     ),
-    addUser: firestoreAction(
-      (_context, { user, id }: { user: User; id: string }) =>
+    addUser: firestoreAction((_context, user: User) =>
+      db
+        .collection("users")
+        .doc(user.id)
+        .set(user)
+    ),
+    followUser: firestoreAction(
+      (
+        _context,
+        {
+          id,
+          followingId,
+          method
+        }: { id: string; followingId: string; method: string }
+      ) =>
         db
           .collection("users")
           .doc(id)
-          .set(user)
+          .update({
+            followers:
+              method === "follow"
+                ? firestore.FieldValue.arrayUnion(followingId)
+                : firestore.FieldValue.arrayRemove(followingId)
+          })
     )
   }
 };

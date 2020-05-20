@@ -38,83 +38,111 @@
     </b-nav>
     <div :class="active === 'photos' ? 'gallery-container' : 'users-container'">
       <b-overlay
-        v-for="(element, i) in activeElements"
-        :key="i"
+        v-for="element in elements"
+        :key="element.id"
         :show="loaded < 2"
         rounded="sm"
       >
         <router-link
-          v-show="active === 'photos'"
-          :to="'/images/' + i"
-          class="item"
+          :to="(active === 'photos' ? '/images/' : '/profile/') + element.id"
+          class="search-item"
         >
-          <img :src="element" alt="image" @load="loaded++" />
-        </router-link>
+          <img
+            v-show="active === 'photos'"
+            :id="element.id"
+            src=""
+            alt="image"
+            @error="updateImage"
+          />
 
-        <b-card
-          v-show="active === 'users'"
-          :title="'User' + i"
-          overlay
-          :img-src="element.profileImageUrl"
-          img-alt="Image"
-          tag="article"
-          class="mb-2"
-        >
-          <div class="card-img-overlay d-flex flex-column">
-            <div class="mt-auto">{{ element.followers }} photos uploaded</div>
-          </div>
-        </b-card>
+          <b-card
+            v-show="active === 'users'"
+            :title="element.username"
+            overlay
+            bg-variant="dark"
+            :img-src="
+              element.profilePicURL === '#' ? '' : element.profilePicURL
+            "
+            img-alt="Image"
+            tag="article"
+            class="mb-2"
+          >
+            <div class="card-img-overlay d-flex flex-column">
+              <div class="mt-auto">
+                {{ element.followers ? element.followers.lenght : 0 }} followers
+              </div>
+            </div>
+          </b-card>
+        </router-link>
       </b-overlay>
     </div>
     <section>
       <a href="#">Next ></a>
     </section>
-    <h1>{{ users }}</h1>
   </div>
 </template>
 
 <script lang="ts">
+import "reflect-metadata";
 import { Prop, Component, Vue } from "vue-property-decorator";
+import { mapState, mapGetters } from "vuex";
+import { Image } from "../store/modules/images";
+import { User } from "../store/modules/users";
 
-@Component
+@Component({
+  computed: {
+    ...mapState("image", ["images"]),
+    ...mapState("auth", ["authUser"]),
+    ...mapState("user", ["users"]),
+    ...mapGetters("image", ["getImageURL"])
+  }
+})
 export default class Search extends Vue {
+  public images!: Array<Image>;
+  public users!: Array<User>;
+  public authUser!: User | null;
+  public getImageURL!: (id: string) => Promise<string>;
   @Prop({ default: "recents" }) sortingBy!: string;
 
-  loaded = 0;
+  loaded = 30;
   active = "photos";
+  imgsSrc!: Record<string, string>;
+
   handleActive(id: string) {
     this.active = id;
   }
-  users = [];
 
-  get activeElements(): Array<string | object> {
-    return this.active === "photos" ? this.images : this.users;
+  created() {
+    this.imgsSrc = {};
+    this.$store
+      .dispatch("image/bindImagesRef")
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      .then(() => {
+        this.images.forEach(({ id }) => {
+          this.getImageURL(id).then(url => (this.imgsSrc[id] = url));
+        });
+      })
+      .catch(this.showError);
+    this.$store.dispatch("user/bindUsersRef").catch(this.showError);
   }
 
-  get images(): Array<string> {
-    return this.active === "photos"
-      ? [
-          "", // "https://picsum.photos/3000/1700"
-          "", // "https://picsum.photos/3000/1500"
-          "", // "https://picsum.photos/3000/1600"
-          "", // "https://picsum.photos/3000/1700"
-          "", // "https://picsum.photos/3200/1700"
-          "", // "https://picsum.photos/3000/1702"
-          "", // "https://picsum.photos/3000/1100"
-          "" // "https://picsum.photos/3000/1300"
-        ]
-      : [
-          "", //"https://picsum.photos/600/300/?image=25",
-          "", //"https://picsum.photos/600/300/?image=24",
-          "", //"https://picsum.photos/3000/1700",
-          "", //"https://picsum.photos/3000/1500",
-          "", //"https://picsum.photos/3000/1600",
-          "", //"https://picsum.photos/3000/1700",
-          "", //"https://picsum.photos/3200/1700",
-          "", //"https://picsum.photos/3000/1702",
-          "", //"https://picsum.photos/3000/1100",
-          "" //"https://picsum.photos/3000/1300"
-        ];
+  get elements(): Array<Image | User> {
+    if (this.images && this.users)
+      return this.active === "photos" ? this.images : this.users;
+    return [];
+  }
+
+  updateImage(t: Event) {
+    const image = t.target as HTMLImageElement;
+    image.src = this.imgsSrc[image.id] || "#";
+  }
+  showError(error: Error, variant = "danger") {
+    this.$bvToast.toast(error.message, {
+      title: "Auth error",
+      variant: variant,
+      solid: true,
+      autoHideDelay: 2000
+    });
   }
 }
 </script>
@@ -152,6 +180,9 @@ section {
   grid-template-columns: 300px;
   grid-gap: 1rem;
   grid-auto-flow: row dense;
+}
+.search-item:hover {
+  color: teal;
 }
 
 img {
