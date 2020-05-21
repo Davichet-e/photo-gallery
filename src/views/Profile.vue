@@ -76,7 +76,6 @@
 </template>
 
 <script lang="ts">
-import "reflect-metadata";
 import { Component, Vue, Prop } from "vue-property-decorator";
 import { mapGetters } from "vuex";
 import { User } from "../store/modules/users";
@@ -111,7 +110,7 @@ export default class Profile extends Vue {
       .catch(this.showError);
 
     this.$store
-      .dispatch("image/bindImagesRef")
+      .dispatch("image/bindPublicImagesRef")
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       .then(() => this.getImagesOfUser(this.userId))
       .then(images => {

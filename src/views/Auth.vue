@@ -87,13 +87,12 @@
 </template>
 
 <script lang="ts">
-import "reflect-metadata";
 import { Prop, Component, Vue } from "vue-property-decorator";
 import { AuthUser } from "../store/modules/auth";
 
 @Component
 export default class Auth extends Vue {
-  @Prop({ required: true }) readonly route!: string;
+  @Prop({ required: true, type: String }) readonly route!: string;
 
   isClicked = false;
 

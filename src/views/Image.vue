@@ -245,7 +245,6 @@
 </template>
 
 <script lang="ts">
-import "reflect-metadata";
 import { Component, Prop, Vue } from "vue-property-decorator";
 import { firestore } from "firebase/app";
 
@@ -270,7 +269,7 @@ export default class ImageDetails extends Vue {
   public getImageById!: (id: string) => Image;
   public getImageURL!: (id: string) => Promise<string>;
   public isBeingFollowed!: (user: User, followingId: string) => boolean;
-  @Prop({ required: true }) photoId!: string;
+  @Prop({ required: true, type: String }) photoId!: string;
 
   itFollows = false;
   imageTags: Array<Tag> = [];

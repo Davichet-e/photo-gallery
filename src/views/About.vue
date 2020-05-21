@@ -117,8 +117,12 @@
       <p class="mb-4 constraints-text">
         The file must have 2000px at his minimum side
       </p>
+      Visibility:
+      <b-check switch v-model="visibilitySwitch">
+        <small><em>If set, the photo will be public</em></small>
+      </b-check>
 
-      <p class="tags-text">Select #tags:</p>
+      <p class="tags-text mt-3">Select #tags:</p>
 
       <div class="modal-tags">
         <b-badge
@@ -189,7 +193,6 @@
 </template>
 
 <script lang="ts">
-import "reflect-metadata";
 import { Component, Vue, Prop } from "vue-property-decorator";
 import { mapState, mapGetters } from "vuex";
 import { Image, FirestoreRef } from "../store/modules/images";
@@ -212,7 +215,7 @@ import { db } from "../firebase";
   }
 })
 export default class About extends Vue {
-  @Prop({ default: "myphotos" }) route!: string;
+  @Prop({ default: "myphotos", type: String }) route!: string;
   public authUser!: User | null;
   public userReference!: FirestoreRef | null;
   public tags!: Array<Tag>;
@@ -224,6 +227,7 @@ export default class About extends Vue {
   loaded = 30;
   followingUsers: Array<User> = [];
   manageTags: Array<Tag> = [];
+  visibilitySwitch = true;
   addTagText = "";
   tagsSelected: Record<string, boolean> = {};
   file: File | null = null;
@@ -333,6 +337,7 @@ export default class About extends Vue {
               date: firestore.Timestamp.now(),
               comments: [],
               tags,
+              public: this.visibilitySwitch,
               likes: 0,
               dislikes: 0
             },

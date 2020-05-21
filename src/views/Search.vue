@@ -83,11 +83,14 @@
 </template>
 
 <script lang="ts">
-import "reflect-metadata";
 import { Prop, Component, Vue } from "vue-property-decorator";
 import { mapState, mapGetters } from "vuex";
-import { Image } from "../store/modules/images";
-import { User } from "../store/modules/users";
+import {
+  Image,
+  orderImagesPopularity,
+  orderImagesRecents
+} from "../store/modules/images";
+import { User, orderUsersPopularity } from "../store/modules/users";
 
 @Component({
   computed: {
@@ -102,7 +105,7 @@ export default class Search extends Vue {
   public users!: Array<User>;
   public authUser!: User | null;
   public getImageURL!: (id: string) => Promise<string>;
-  @Prop({ default: "recents" }) sortingBy!: string;
+  @Prop({ default: "recents", type: String }) sortingBy!: string;
 
   loaded = 30;
   active = "photos";
@@ -115,7 +118,7 @@ export default class Search extends Vue {
   created() {
     this.imgsSrc = {};
     this.$store
-      .dispatch("image/bindImagesRef")
+      .dispatch("image/bindPublicImagesRef")
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       .then(() => {
         this.images.forEach(({ id }) => {
@@ -126,9 +129,21 @@ export default class Search extends Vue {
     this.$store.dispatch("user/bindUsersRef").catch(this.showError);
   }
 
+  getImages() {
+    const method =
+      this.sortingBy === "recents" ? orderImagesRecents : orderImagesPopularity;
+    return this.images.slice().sort(method);
+  }
+
+  getUsers() {
+    return this.sortingBy === "popular"
+      ? this.users.slice().sort(orderUsersPopularity)
+      : this.users;
+  }
+
   get elements(): Array<Image | User> {
     if (this.images && this.users)
-      return this.active === "photos" ? this.images : this.users;
+      return this.active === "photos" ? this.getImages() : this.getUsers();
     return [];
   }
 

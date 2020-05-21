@@ -12,7 +12,6 @@
     "bootstrap-vue": "^2.14.0",
     "core-js": "^3.6.5",
     "firebase": "^7.14.4",
-    "reflect-metadata": "^0.1.13",
     "vue": "^2.6.11",
     "vue-class-component": "^7.2.2",
     "vue-property-decorator": "^8.4.2",

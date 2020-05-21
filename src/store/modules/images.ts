@@ -23,19 +23,23 @@ export interface Image {
   date: firestore.Timestamp;
   comments: Array<Comment>;
   tags: Array<Tag>;
+  public: boolean;
   likes: number;
   dislikes: number;
 }
 
-const getScore = (a: Image, b: Image) =>
+export const orderImagesPopularity = (a: Image, b: Image) =>
   b.likes - b.dislikes - (a.likes - a.dislikes);
+
+export const orderImagesRecents = (a: Image, b: Image) =>
+  b.date.seconds - a.date.seconds;
 
 export interface ImageState {
   images: Array<Image>;
 }
 
 export function sortImagesByPopularity(images: Array<Image>) {
-  return images.slice().sort(getScore);
+  return images.slice().sort(orderImagesPopularity);
 }
 
 export const image = {
@@ -60,7 +64,7 @@ export const image = {
     },
 
     getImagesByPopularity(state: ImageState) {
-      return state.images.sort(getScore);
+      return state.images.sort(orderImagesPopularity);
     },
 
     getImageURL() {
@@ -87,6 +91,12 @@ export const image = {
   actions: {
     bindImagesRef: firestoreAction(({ bindFirestoreRef }) =>
       bindFirestoreRef("images", db.collection("photos").orderBy("date"))
+    ),
+    bindPublicImagesRef: firestoreAction(({ bindFirestoreRef }) =>
+      bindFirestoreRef(
+        "images",
+        db.collection("photos").where("public", "==", true)
+      )
     ),
     addPhoto: firestoreAction(
       (_state, { image, file }: { image: Image; file: File }) => {

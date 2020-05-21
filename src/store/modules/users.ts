@@ -16,6 +16,9 @@ export interface UserState {
   users: Array<User>;
 }
 
+export const orderUsersPopularity = (a: User, b: User) =>
+  b.followers.length - a.followers.length;
+
 export const user = {
   namespaced: true,
 
