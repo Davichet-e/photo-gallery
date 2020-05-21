@@ -97,7 +97,7 @@ router.beforeEach((to, _from, next) => {
   if (to.matched.some(({ meta }) => meta.requiresAuth)) {
     store.dispatch("auth/authUser").then((userIsLogged: boolean) => {
       if (userIsLogged) next();
-      else next("login");
+      else next("/login");
     });
   } else {
     next();
