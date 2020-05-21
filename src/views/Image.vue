@@ -298,11 +298,12 @@ export default class ImageDetails extends Vue {
 
       this.likes = this.image.likes;
       this.dislikes = this.image.dislikes;
-      this.itFollows = this.isBeingFollowed(
-        this.image.author as User,
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        this.authUser!.id!
-      );
+      if (this.authUser) {
+        this.itFollows = this.isBeingFollowed(
+          this.image.author as User,
+          this.authUser.id
+        );
+      }
       this.getImageURL(this.photoId)
         .then(url => (this.imageURL = url))
         .catch(this.showError);
