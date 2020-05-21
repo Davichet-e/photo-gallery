@@ -102,6 +102,12 @@ export default class Auth extends Vue {
 
   routeGoogleImage: string = require("@/assets/sign-in-google/btn_google_signin_dark_normal_web.png");
 
+  created() {
+    this.email = "";
+    this.username = "";
+    this.password = "";
+  }
+
   get googleImage(): string {
     return this.routeGoogleImage;
   }

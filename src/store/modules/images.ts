@@ -105,7 +105,7 @@ export const image = {
           .storage()
           .ref()
           .child(ref.id)
-          .put(file);
+          .put(file, { contentType: file.type });
         return ref.set(image);
       }
     ),
@@ -160,6 +160,11 @@ export const image = {
       }
     ),
     deleteImage: firestoreAction((_state, photoId: string) => {
+      firebase
+        .storage()
+        .ref()
+        .child(photoId)
+        .delete();
       db.collection("photos")
         .doc(photoId)
         .delete();
