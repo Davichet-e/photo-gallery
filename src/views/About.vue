@@ -343,7 +343,8 @@ export default class About extends Vue {
             },
             file: this.file
           })
-          .then(() => this.$router.go(0));
+          .then(() => this.$router.go(0))
+          .catch(this.showError);
       } else
         this.showError(new Error("You have reached the photo upload limit."));
     }

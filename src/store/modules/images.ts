@@ -101,12 +101,12 @@ export const image = {
     addPhoto: firestoreAction(
       (_state, { image, file }: { image: Image; file: File }) => {
         const ref = db.collection("photos").doc();
-        firebase
+        return firebase
           .storage()
           .ref()
           .child(ref.id)
-          .put(file, { contentType: file.type });
-        return ref.set(image);
+          .put(file, { contentType: file.type })
+          .then(() => ref.set(image));
       }
     ),
     addCommentToImg: firestoreAction(
