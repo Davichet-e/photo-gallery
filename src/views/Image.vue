@@ -1,7 +1,9 @@
 <template>
   <div id="image">
     <main>
-      <img class="photo" :src="imageURL" alt />
+      <b-overlay class="overlay-img" :show="!loaded" rounded="sm">
+        <img class="photo" :src="imageURL" @load="loaded = true" alt="image" />
+      </b-overlay>
       <h5 class="golden-title mt-5">
         Comments
         <b-icon-chat-dots class="ml-1 mr-3"></b-icon-chat-dots>
@@ -271,6 +273,7 @@ export default class ImageDetails extends Vue {
   public isBeingFollowed!: (user: User, followingId: string) => boolean;
   @Prop({ required: true, type: String }) photoId!: string;
 
+  loaded = false;
   itFollows = false;
   imageTags: Array<Tag> = [];
   editing = false;
@@ -485,17 +488,19 @@ export default class ImageDetails extends Vue {
   color: yellowgreen;
 }
 
-img {
+.photo {
   object-fit: contain;
   max-height: 600px;
-  /* width: 100%; */
   max-width: 100%;
   min-width: 60%;
-  /* height: auto; */
+}
+
+.overlay-img {
+  display: flex;
+  justify-content: center;
 }
 
 #image {
-  /* padding-top: 10px; */
   display: flex;
   flex-wrap: wrap;
 }

@@ -43,8 +43,8 @@
       }"
     >
       <b-overlay
-        v-for="(item, i) in items"
-        :key="i"
+        v-for="item in items"
+        :key="item.id"
         :show="route !== 'settings' && loaded < Math.floor(items.length / 5)"
         rounded="sm"
       >
@@ -58,8 +58,9 @@
             class="gallery-image"
             v-show="route === 'myphotos'"
             src=""
-            alt="image"
+            :alt="item.id"
             @error="updateImg"
+            @load="loaded++"
           />
           <b-card
             v-show="route === 'following'"
@@ -224,7 +225,7 @@ export default class About extends Vue {
   public numberOfImagesOfUser!: (id: string) => number;
   public usersFollowedBy!: (id: string) => Array<User>;
 
-  loaded = 30;
+  loaded = 0;
   followingUsers: Array<User> = [];
   manageTags: Array<Tag> = [];
   visibilitySwitch = true;

@@ -64,11 +64,16 @@
         v-for="image in getImages"
         :key="image.id"
         :show="loaded < Math.floor(getImages.length / 5)"
-        @load="loaded++"
         rounded="sm"
       >
         <router-link :to="'/images/' + image.id" class="item">
-          <img :id="image.id" src="" alt="image" @error="updateImg" />
+          <img
+            :id="image.id"
+            src=""
+            :alt="image.id"
+            @error="updateImg"
+            @load="loaded++"
+          />
         </router-link>
       </b-overlay>
     </div>
@@ -96,7 +101,7 @@ export default class Profile extends Vue {
   images: Array<Image> = [];
   user: User | null = null;
   imgsSrc!: Record<string, string>;
-  loaded = 40;
+  loaded = 0;
   active = "popular";
 
   created() {

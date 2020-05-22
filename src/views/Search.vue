@@ -51,8 +51,9 @@
             v-show="active === 'photos'"
             :id="element.id"
             src=""
-            alt="image"
+            :alt="element.id"
             @error="updateImage"
+            @load="loaded++"
           />
 
           <b-card
@@ -107,7 +108,7 @@ export default class Search extends Vue {
   public getImageURL!: (id: string) => Promise<string>;
   @Prop({ default: "recents", type: String }) sortingBy!: string;
 
-  loaded = 30;
+  loaded = 0;
   active = "photos";
   imgsSrc!: Record<string, string>;
 
