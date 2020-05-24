@@ -207,6 +207,7 @@ import { ShowErrorMixin } from "../mixins/showError";
   computed: {
     ...mapState("auth", ["authUser"]),
     ...mapState("tag", ["tags"]),
+    ...mapState("image", ["images"]),
     ...mapGetters("image", [
       "getImagesOfUser",
       "getImageURL",
@@ -221,6 +222,7 @@ export default class About extends Mixins(ShowErrorMixin) {
   public authUser!: User;
   public userReference!: FirestoreRef | null;
   public tags!: Array<Tag>;
+  public images!: Array<Image>;
   public getImagesOfUser!: (id: string) => Array<Image>;
   public getImageURL!: (id: string) => Promise<string>;
   public numberOfImagesOfUser!: (id: string) => number;
@@ -233,7 +235,6 @@ export default class About extends Mixins(ShowErrorMixin) {
   addTagText = "";
   tagsSelected: Record<string, boolean> = {};
   file: File | null = null;
-  images: Array<Image> = [];
   imgsSrc: Record<string, string> = {};
   tagsToAdd: Array<Tag> = [];
   title = "";
@@ -257,7 +258,7 @@ export default class About extends Mixins(ShowErrorMixin) {
       .catch(this.showError);
 
     this.$store
-      .dispatch("image/bindImagesOfUser")
+      .dispatch("image/bindImagesOfUser", this.authUser.id)
       .then(() =>
         this.images.forEach(({ id }) => {
           this.getImageURL(id).then(url => (this.imgsSrc[id] = url));
@@ -267,7 +268,7 @@ export default class About extends Mixins(ShowErrorMixin) {
   }
 
   get getImages() {
-    return this.images;
+    return this.images ?? [];
   }
 
   get following() {
