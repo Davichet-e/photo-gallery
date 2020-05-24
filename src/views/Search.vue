@@ -42,8 +42,12 @@
             ><h1>Photos' Sea!</h1>
           </b-carousel-slide>
         </b-carousel>
-      </div> </transition
-    ><b-nav tabs fill class="mx-4 rounded">
+      </div>
+      <h3 v-else-if="searchTag" class="search-tag-title my-3">
+        Images with tag: {{ searchTag }}
+      </h3>
+    </transition>
+    <b-nav tabs fill class="mx-4 rounded">
       <b-nav-item
         class="border-left border-bottom rounded-left"
         @click="handleActive('photos')"
@@ -69,7 +73,7 @@
           Most Recents
         </b-dropdown-item>
         <b-dropdown-item
-          :to="{ query: { order: 'popular' } }"
+          :to="{ query: { order: 'popular', searchTag: searchTag } }"
           :active="sortingBy === 'popular'"
         >
           Most Popular
@@ -80,7 +84,7 @@
       <b-overlay
         v-for="element in elements"
         :key="element.id"
-        :show="loaded < Math.floor(elements.length / 5)"
+        :show="showOverlay"
         rounded="sm"
       >
         <router-link
@@ -134,23 +138,31 @@ import {
 } from "../store/modules/images";
 import { User, orderUsersPopularity } from "../store/modules/users";
 import { ShowErrorMixin } from "@/mixins/showError";
+import { Route, NavigationGuardNext } from "vue-router";
+
+Component.registerHooks(["beforeRouteUpdate"]);
 
 @Component({
   computed: {
-    ...mapState("image", ["images"]),
     ...mapState("auth", ["authUser"]),
     ...mapState("user", ["users"]),
-    ...mapGetters("image", ["getImageURL"])
+    ...mapGetters("image", ["getImageURL", "getPublicImagesWithTag"])
   }
 })
 export default class Search extends Mixins(ShowErrorMixin) {
-  public images!: Array<Image>;
   public users!: Array<User>;
   public authUser!: User | null;
   public getImageURL!: (id: string) => Promise<string>;
+  public getPublicImagesWithTag!: (
+    images: Image[],
+    tagValue: string
+  ) => Image[];
   @Prop({ default: "/", type: String }) route!: string;
   @Prop({ default: "recents", type: String }) sortingBy!: string;
+  @Prop({ required: false, type: String }) searchTag!: string;
 
+  images: Array<Image> = [];
+  publicImages: Array<Image> = [];
   loaded = 0;
   active = "photos";
   imgsSrc!: Record<string, string>;
@@ -163,6 +175,12 @@ export default class Search extends Mixins(ShowErrorMixin) {
     this.imgsSrc = {};
     this.$store
       .dispatch("image/bindPublicImagesRef")
+      .then(images => {
+        this.publicImages = images;
+        if (this.searchTag)
+          this.images = this.getPublicImagesWithTag(images, this.searchTag);
+        else this.images = images;
+      })
       .then(() => {
         this.images.sort(orderImagesRecents).forEach(({ id }) => {
           this.getImageURL(id).then(url => (this.imgsSrc[id] = url));
@@ -170,6 +188,21 @@ export default class Search extends Mixins(ShowErrorMixin) {
       })
       .catch(this.showError);
     this.$store.dispatch("user/bindUsersRef").catch(this.showError);
+  }
+
+  beforeRouteUpdate(to: Route, from: Route, next: NavigationGuardNext<Vue>) {
+    const tag = to.query.searchTag;
+    if (tag)
+      this.images = this.getPublicImagesWithTag(this.images, tag as string);
+    else this.images = this.publicImages;
+    next();
+  }
+
+  get showOverlay() {
+    return (
+      this.active === "photos" &&
+      this.loaded < Math.floor(this.images.length / 5)
+    );
   }
 
   getImages() {
@@ -225,6 +258,11 @@ export default class Search extends Mixins(ShowErrorMixin) {
 }
 .search-item:hover {
   color: teal;
+}
+
+.search-tag-title {
+  text-align: center;
+  color: azure;
 }
 
 .carousel-item {

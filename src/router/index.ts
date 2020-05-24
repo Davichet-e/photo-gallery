@@ -72,7 +72,8 @@ const routes = [
     name: "Search",
     props: (route: Route) => ({
       sortingBy: route.query.order,
-      route: "search"
+      route: "search",
+      searchTag: route.query.searchTag
     }),
     component: Search
   },

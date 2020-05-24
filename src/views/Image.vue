@@ -127,7 +127,12 @@
         <h4 v-if="!editing" class="img-title">
           {{ imageTitle }}
         </h4>
-        <b-input v-else class="w-50" v-model="imageTitle">
+        <b-input
+          v-else
+          class="w-50"
+          :state="stateEditTitle"
+          v-model="imageTitle"
+        >
           {{ imageTitle }}
         </b-input>
         <template v-if="authUser && imageAuthor.id === authUser.id">
@@ -140,7 +145,7 @@
             @click.once="
               $store
                 .dispatch('tag/bindTagsRef')
-                .then(() => (this.tagsToAdd = this.imageTags.slice()))
+                .then(tags => (tagsToAdd = tags))
             "
             @click="editPhoto"
           >
@@ -160,7 +165,12 @@
         <p v-if="!editing" class="img-description">
           {{ imageDescription }}
         </p>
-        <b-textarea v-else v-model="imageDescription" class="mt-2"></b-textarea>
+        <b-textarea
+          v-else
+          v-model="imageDescription"
+          :state="stateEditDescription"
+          class="mt-2"
+        ></b-textarea>
         <div class="tags mt-2">
           <b-badge
             v-for="{ id, value } of chooseTags"
@@ -179,19 +189,27 @@
             <b-icon-plus></b-icon-plus>
           </b-badge>
         </div>
-        <div v-if="editing" class="mt-2 ml-2">
-          <b-button
-            variant="success"
-            pill
-            class="mr-2"
-            size="sm"
-            @click="saveEdit"
-          >
-            Save
-          </b-button>
-          <b-button variant="dark" pill size="sm" @click="editing = false">
-            Cancel
-          </b-button>
+        <div v-if="editing">
+          <div class="visibility-check m-2">
+            Visibility:
+            <b-check switch v-model="visibilitySwitch">
+              <small><em>If set, the photo will be public</em></small>
+            </b-check>
+          </div>
+          <div class="mt-2 ml-2">
+            <b-button
+              variant="success"
+              pill
+              class="mr-2"
+              size="sm"
+              @click="saveEdit"
+            >
+              Save
+            </b-button>
+            <b-button variant="dark" pill size="sm" @click="cancelEdit">
+              Cancel
+            </b-button>
+          </div>
         </div>
       </b-list-group-item>
     </b-list-group>
@@ -255,6 +273,7 @@ import { mapState, mapGetters } from "vuex";
 import { User } from "../store/modules/users";
 import { Tag } from "../store/modules/tags";
 import { ShowErrorMixin } from "../mixins/showError";
+import { BadWordsMixin } from "../mixins/badWords";
 
 @Component({
   computed: {
@@ -266,7 +285,10 @@ import { ShowErrorMixin } from "../mixins/showError";
     ...mapGetters("user", ["isBeingFollowed"])
   }
 })
-export default class ImageDetails extends Mixins(ShowErrorMixin) {
+export default class ImageDetails extends Mixins(
+  ShowErrorMixin,
+  BadWordsMixin
+) {
   public authUser!: User | null;
   public userReference!: FirestoreRef;
   public actualImage!: Image | null;
@@ -287,6 +309,7 @@ export default class ImageDetails extends Mixins(ShowErrorMixin) {
   imageTitle = "";
   imageDescription = "";
   imageURL = "#";
+  visibilitySwitch = true;
   commentState: boolean | null = null;
   commentText = "";
   commentActive = false;
@@ -294,6 +317,8 @@ export default class ImageDetails extends Mixins(ShowErrorMixin) {
   likes = 0;
   dislikes = 0;
   selected: string | null = null;
+  stateEditTitle: boolean | null = null;
+  stateEditDescription: boolean | null = null;
 
   async created() {
     const image = this.getImageById(this.photoId);
@@ -304,6 +329,7 @@ export default class ImageDetails extends Mixins(ShowErrorMixin) {
     } else {
       this.image = image;
     }
+    this.visibilitySwitch = this.image.public;
 
     this.imageTitle = this.image.title;
     this.imageDescription = this.image.description;
@@ -331,7 +357,7 @@ export default class ImageDetails extends Mixins(ShowErrorMixin) {
   }
 
   resetEditTags() {
-    this.tagsToAdd = this.imageTags.slice();
+    this.tagsToAdd = [...this.imageTags];
   }
 
   get searchTag() {
@@ -415,14 +441,22 @@ export default class ImageDetails extends Mixins(ShowErrorMixin) {
 
   editPhoto() {
     this.editing = true;
-    this.tagsToAdd = this.imageTags.slice();
+    this.stateEditTitle = null;
+    this.stateEditDescription = null;
+    this.tagsToAdd = [...this.imageTags];
   }
 
   deletePhoto() {
-    this.$store
-      .dispatch("image/deleteImage", this.photoId)
-      .then(() => this.$router.push("/about"))
-      .catch(this.showError);
+    if (this.image?.comments.length === 0)
+      this.$store
+        .dispatch("image/deleteImage", this.photoId)
+        .then(() => this.$router.push("/about"))
+        .catch(this.showError);
+    else
+      this.showError(
+        new Error("You can't delete photos with comment"),
+        "Delete photo error"
+      );
   }
 
   handleFollow() {
@@ -443,19 +477,56 @@ export default class ImageDetails extends Mixins(ShowErrorMixin) {
     }
   }
 
+  cancelEdit() {
+    this.editing = false;
+    if (this.image) {
+      this.imageTitle = this.image.title;
+      this.imageDescription = this.image.description;
+    }
+  }
+
   saveEdit() {
-    if (this.image)
-      this.$store
-        .dispatch("image/editImage", {
-          title: this.imageTitle,
-          description: this.imageDescription,
-          photoId: this.image.id,
-          tags: this.imageTags
-        })
-        .then(() => {
-          this.editing = false;
-        })
-        .catch(this.showError);
+    if (this.image) {
+      let error: string | undefined;
+      if (this.imageTitle.length > 0)
+        if (this.textIsValid(this.imageTitle)) {
+          this.stateEditTitle = true;
+        } else {
+          error = "Bad words are not allowed";
+          this.stateEditTitle = false;
+        }
+      else {
+        error = "Title must not be empty";
+        this.stateEditTitle = false;
+      }
+
+      if (this.imageDescription.length > 0)
+        if (this.textIsValid(this.imageDescription)) {
+          this.stateEditDescription = true;
+        } else {
+          error = "Bad words are not allowed";
+          this.stateEditDescription = false;
+        }
+      else {
+        error = "Description must not be empty";
+        this.stateEditDescription = false;
+      }
+
+      if (!error)
+        this.$store
+          .dispatch("image/editImage", {
+            title: this.imageTitle,
+            description: this.imageDescription,
+            photoId: this.image.id,
+            tags: this.imageTags,
+            imageIsPublic: this.visibilitySwitch
+          })
+          .then(() => {
+            this.editing = false;
+          })
+          .catch(this.showError);
+      else this.showError(new Error(error), "Invalid edit");
+    }
   }
 }
 </script>
@@ -482,6 +553,10 @@ export default class ImageDetails extends Mixins(ShowErrorMixin) {
 .golden-title {
   color: goldenrod;
   margin-bottom: 10px;
+}
+
+.visibility-check {
+  color: whitesmoke;
 }
 
 .comment-author {

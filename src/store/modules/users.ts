@@ -51,11 +51,8 @@ export const user = {
   mutations: vuexfireMutations,
 
   actions: {
-    bindUsersRef: firestoreAction(
-      ({ bindFirestoreRef, unbindFirestoreRef }) => {
-        unbindFirestoreRef("actualUser");
-        return bindFirestoreRef("users", db.collection("users"));
-      }
+    bindUsersRef: firestoreAction(({ bindFirestoreRef }) =>
+      bindFirestoreRef("users", db.collection("users"))
     ),
     bindUserById: firestoreAction(({ bindFirestoreRef }, userId: string) =>
       bindFirestoreRef("actualUser", db.collection("users").doc(userId))

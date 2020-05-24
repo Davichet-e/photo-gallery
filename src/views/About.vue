@@ -90,30 +90,39 @@
       body-bg-variant="dark"
       body-text-variant="light"
       footer-bg-variant="dark"
+      footer-text-variant="secondary"
       centered
       title="Upload photo"
-      @ok="handleUpload"
-      footer-text-variant="secondary"
+      @show="resetModal"
+      @hidden="resetModal"
+      @ok="handleOk"
     >
-      <b-form>
+      <b-form ref="image-form" @submit.stop.prevent="handleUpload">
         <b-input
           required
           class="my-3"
+          :state="stateTitle"
           placeholder="Title"
+          aria-invalid="title-badword-feedback"
           v-model="title"
+          invalid-feedback="Bad words are not allowed"
         ></b-input>
+        <b-form-invalid-feedback id="title-badword-feedback">
+          Badwords not allowed
+        </b-form-invalid-feedback>
         <b-textarea
           required
           class="my-2"
+          :state="stateDescription"
           placeholder="Description"
+          aria-invalid="description-badword-feedback"
+          invalid-feedback="Bad words are not allowed"
           v-model="description"
         ></b-textarea>
-        <b-file
-          id="file-input"
-          class="my-4"
-          v-model="file"
-          accept="image/*"
-        ></b-file>
+        <b-form-invalid-feedback id="description-badword-feedback">
+          Badwords not allowed
+        </b-form-invalid-feedback>
+        <b-file required class="my-4" v-model="file" accept="image/*"></b-file>
       </b-form>
       <p class="mb-4 constraints-text">
         The file must have 2000px at his minimum side
@@ -134,10 +143,6 @@
           :variant="tagsSelected[id] ? 'success' : 'secondary'"
           >{{ value }}</b-badge
         >
-        <b-badge class="mx-2 mt-2" variant="info">
-          <!-- TODO -->
-          <b-icon-plus></b-icon-plus>
-        </b-badge>
       </div>
 
       <template v-slot:modal-footer="{ ok }">
@@ -148,7 +153,14 @@
           >
         </p>
 
-        <b-button size="sm" variant="success" @click="ok()">Upload</b-button>
+        <b-button
+          size="sm"
+          type="submit"
+          form="photo-form"
+          variant="success"
+          @click="ok()"
+          >Upload</b-button
+        >
       </template>
     </b-modal>
     <!-- Manage tags Modal -->
@@ -202,6 +214,8 @@ import { firestore } from "firebase/app";
 import { Tag } from "../store/modules/tags";
 import { db } from "../firebase";
 import { ShowErrorMixin } from "../mixins/showError";
+import { BadWordsMixin } from "@/mixins/badWords";
+import { BvModalEvent } from "bootstrap-vue";
 
 @Component({
   computed: {
@@ -217,7 +231,11 @@ import { ShowErrorMixin } from "../mixins/showError";
     ...mapGetters("user", ["usersFollowedBy"])
   }
 })
-export default class About extends Mixins(ShowErrorMixin) {
+export default class About extends Mixins(ShowErrorMixin, BadWordsMixin) {
+  $refs!: {
+    "image-form": HTMLFormElement;
+  };
+
   @Prop({ default: "myphotos", type: String }) route!: string;
   public authUser!: User;
   public userReference!: FirestoreRef | null;
@@ -230,6 +248,9 @@ export default class About extends Mixins(ShowErrorMixin) {
 
   loaded = 0;
   followingUsers: Array<User> = [];
+  stateTitle: boolean | null = null;
+  stateDescription: boolean | null = null;
+
   manageTags: Array<Tag> = [];
   visibilitySwitch = true;
   addTagText = "";
@@ -244,6 +265,14 @@ export default class About extends Mixins(ShowErrorMixin) {
 
   created() {
     this.$store
+      .dispatch("image/bindImagesOfUser", this.authUser.id)
+      .then(() =>
+        this.images.forEach(({ id }) => {
+          this.getImageURL(id).then(url => (this.imgsSrc[id] = url));
+        })
+      )
+      .catch(this.showError);
+    this.$store
       .dispatch("user/bindUsersRef")
       .then(
         () => (this.followingUsers = this.usersFollowedBy(this.authUser.id))
@@ -255,15 +284,6 @@ export default class About extends Mixins(ShowErrorMixin) {
       .then(() => {
         this.tags.forEach(({ id }) => (this.tagsSelected[id] = false));
       })
-      .catch(this.showError);
-
-    this.$store
-      .dispatch("image/bindImagesOfUser", this.authUser.id)
-      .then(() =>
-        this.images.forEach(({ id }) => {
-          this.getImageURL(id).then(url => (this.imgsSrc[id] = url));
-        })
-      )
       .catch(this.showError);
   }
 
@@ -277,6 +297,35 @@ export default class About extends Mixins(ShowErrorMixin) {
 
   get items() {
     return this.route === "myphotos" ? this.getImages : this.following;
+  }
+
+  resetModal() {
+    this.title = "";
+    this.description = "";
+    this.file = null;
+  }
+
+  handleOk(bvModalEvt: BvModalEvent) {
+    // Prevent modal from closing
+    bvModalEvt.preventDefault();
+    // Trigger submit handler
+    this.handleSubmit();
+  }
+  handleSubmit() {
+    this.stateTitle = null;
+    this.stateDescription = null;
+    // Exit when the form isn't valid
+    if (this.$refs["image-form"].reportValidity()) {
+      this.stateTitle = this.textIsValid(this.title);
+      this.stateDescription = this.textIsValid(this.description);
+      // Hide the modal manually
+      if (this.stateTitle && this.stateDescription) {
+        this.$nextTick(() => {
+          this.$bvModal.hide("upload-modal");
+          this.handleUpload();
+        });
+      }
+    }
   }
 
   addTag() {

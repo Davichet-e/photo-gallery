@@ -65,6 +65,13 @@ export const image = {
         state.images.filter(({ author }) => author.id === id);
     },
 
+    getPublicImagesWithTag() {
+      return (images: Array<Image>, tagValue: string) =>
+        images.filter(({ tags }) =>
+          tags.some(({ value }) => value === tagValue)
+        );
+    },
+
     getImagesByPopularity(state: ImageState) {
       return state.images.sort(orderImagesPopularity);
     },
@@ -99,6 +106,16 @@ export const image = {
           .collection("photos")
           .where("author", "==", db.collection("users").doc(userId))
       )
+    ),
+    bindPublicImagesOfUser: firestoreAction(
+      ({ bindFirestoreRef }, userId: string) =>
+        bindFirestoreRef(
+          "images",
+          db
+            .collection("photos")
+            .where("author", "==", db.collection("users").doc(userId))
+            .where("public", "==", true)
+        )
     ),
     bindImageById: firestoreAction(({ bindFirestoreRef }, imageId: string) =>
       bindFirestoreRef("actualImage", db.collection("photos").doc(imageId))
@@ -156,22 +173,25 @@ export const image = {
           photoId,
           title,
           description,
-          tags
+          tags,
+          imageIsPublic
         }: {
           photoId: string;
           title: number;
           description: number;
           tags: Array<Tag>;
+          imageIsPublic: boolean;
         }
-      ) => {
-        db.collection("photos")
+      ) =>
+        db
+          .collection("photos")
           .doc(photoId)
           .update({
             title,
             description,
-            tags: tags.map(tag => db.collection("tags").doc(tag.id))
-          });
-      }
+            tags: tags.map(tag => db.collection("tags").doc(tag.id)),
+            public: imageIsPublic
+          })
     ),
     deleteImage: firestoreAction((_state, photoId: string) => {
       firebase

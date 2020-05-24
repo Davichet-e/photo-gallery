@@ -129,7 +129,7 @@ export default class Profile extends Mixins(ShowErrorMixin) {
         .catch(this.showError)) as User;
     } else this.user = user;
     this.$store
-      .dispatch("image/bindImagesOfUser", this.userId)
+      .dispatch("image/bindPublicImagesOfUser", this.userId)
       .then(() => {
         this.images.forEach(({ id }) => {
           this.getImageURL(id).then(url => (this.imgsSrc[id] = url));

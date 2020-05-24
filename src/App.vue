@@ -2,26 +2,24 @@
   <div id="app">
     <nav-bar />
     <transition name="slide" mode="out-in">
-      <router-view />
+      <router-view :key="$route.path" />
     </transition>
   </div>
 </template>
 
-<script lang="ts">
+<script>
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
 
-import Vue from "vue";
-import Component from "vue-class-component";
-
 import NavBar from "./components/NavBar.vue";
 
-@Component({ components: { NavBar } })
-export default class App extends Vue {
+export default {
+  name: "App",
+  components: { NavBar },
   created() {
     this.$store.dispatch("auth/authUser");
   }
-}
+};
 </script>
 
 <style>

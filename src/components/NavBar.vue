@@ -28,15 +28,15 @@
 
           <b-input-group-append>
             <b-dd size="sm" variant="light" :text="searchSelected">
+              <b-dd-item-button @click="searchSelected = 'Tags'"
+                >Tags</b-dd-item-button
+              >
               <b-dd-item-button @click="searchSelected = 'Images'"
                 >Images</b-dd-item-button
               >
               <b-dd-divider></b-dd-divider>
               <b-dd-item-button @click="searchSelected = 'Authors'"
                 >Authors</b-dd-item-button
-              >
-              <b-dd-item-button @click="searchSelected = 'Tags'"
-                >Tags</b-dd-item-button
               >
             </b-dd>
           </b-input-group-append>
@@ -125,11 +125,18 @@ import { User } from "firebase";
 })
 export default class NavBar extends Vue {
   public authUser!: User | null;
-  searchSelected = "Images";
+  searchSelected = "Tags";
   searchTerm = "";
 
   search(/*evt: Event*/) {
-    this.$router.push({ name: "Search", query: { order: "recents" } });
+    if (this.searchTerm.trim().length === 0)
+      this.$router.push({ name: "Search" });
+    else
+      this.$router.replace({
+        name: "Search",
+        query: { searchTag: this.searchTerm }
+      });
+    this.searchTerm = "";
   }
 
   signOut() {
