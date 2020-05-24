@@ -1,6 +1,6 @@
 import Vue from "vue";
 import VueRouter, { Route } from "vue-router";
-import Home from "../views/Home.vue";
+import Search from "../views/Search.vue";
 import store from "@/store/index";
 import "firebase/auth";
 Vue.use(VueRouter);
@@ -9,7 +9,10 @@ const routes = [
   {
     path: "/",
     name: "Home",
-    component: Home
+    props: (route: Route) => ({
+      sortingBy: route.query.order
+    }),
+    component: Search
   },
   {
     path: "/about",
@@ -67,9 +70,11 @@ const routes = [
   {
     path: "/images/search",
     name: "Search",
-    props: (route: Route) => ({ sortingBy: route.query.order }),
-    component: () =>
-      import(/* webpackChunkName: "search" */ "../views/Search.vue")
+    props: (route: Route) => ({
+      sortingBy: route.query.order,
+      route: "search"
+    }),
+    component: Search
   },
   {
     path: "/images/:photoId",

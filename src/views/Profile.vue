@@ -1,8 +1,8 @@
 <template>
   <div>
     <div id="profile">
-      <h1>{{ getUser.username }}</h1>
-      <p>{{ data.description }}</p>
+      <h1 class="username">{{ getUser.username }}</h1>
+      <p class="description">{{ data.description }}</p>
       <b-icon-people-circle
         variant="dark"
         class="h1"
@@ -48,14 +48,23 @@
     >
       <b-nav-item
         @click="handleActive('popular')"
+        class="tab-item"
         :active="active === 'popular'"
       >
         Most Popular
       </b-nav-item>
-      <b-nav-item @click="handleActive('recent')" :active="active === 'recent'">
+      <b-nav-item
+        @click="handleActive('recent')"
+        class="tab-item"
+        :active="active === 'recent'"
+      >
         Most Recent
       </b-nav-item>
-      <b-nav-item @click="handleActive('about')" :active="active === 'about'">
+      <b-nav-item
+        @click="handleActive('about')"
+        class="tab-item"
+        :active="active === 'about'"
+      >
         About Me
       </b-nav-item>
     </b-nav>
@@ -69,6 +78,7 @@
         <router-link :to="'/images/' + image.id" class="item">
           <img
             :id="image.id"
+            class="image"
             src=""
             :alt="image.id"
             @error="updateImg"
@@ -81,46 +91,47 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue, Prop } from "vue-property-decorator";
-import { mapGetters } from "vuex";
+import { Component, Prop, Mixins } from "vue-property-decorator";
+import { mapGetters, mapState } from "vuex";
 import { User } from "../store/modules/users";
 import { Image, sortImagesByPopularity } from "../store/modules/images";
+import { ShowErrorMixin } from "../mixins/showError";
 
 @Component({
   computed: {
-    ...mapGetters("image", ["getImagesOfUser", "getImageURL"]),
-    ...mapGetters("user", ["getUserById"])
+    ...mapState("user", ["actualUser", "users"]),
+    ...mapState("image", ["images"]),
+    ...mapGetters("user", ["getUserById"]),
+    ...mapGetters("image", ["getImagesOfUser", "getImageURL"])
   }
 })
-export default class Profile extends Vue {
+export default class Profile extends Mixins(ShowErrorMixin) {
+  public actualUser!: User | null;
+  public users!: Array<User>;
+  public images!: Array<Image>;
   public getImagesOfUser!: (id: string) => Array<Image>;
   public getImageURL!: (id: string) => Promise<string>;
-  public getUserById!: (id: string) => User;
+  public getUserById!: (id: string) => User | undefined;
   @Prop({ required: true, type: String }) userId!: string;
 
-  images: Array<Image> = [];
   user: User | null = null;
-  imgsSrc!: Record<string, string>;
+  imgsSrc: Record<string, string> = {};
   loaded = 0;
   active = "popular";
+  userName = "";
 
-  created() {
-    this.imgsSrc = {};
+  async created() {
+    // TODO
+    const user = this.getUserById(this.userId);
+    if (!user) {
+      this.user = (await this.$store
+        .dispatch("user/bindUserById", this.userId)
+        .catch(this.showError)) as User;
+    } else this.user = user;
     this.$store
-      .dispatch("user/bindUsersRef")
-      .then(
-        s =>
-          (this.user = s.find(({ id }: { id: string }) => id === this.userId))
-      )
-      .catch(this.showError);
-
-    this.$store
-      .dispatch("image/bindPublicImagesRef")
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      .then(() => this.getImagesOfUser(this.userId))
-      .then(images => {
-        this.images = images;
-        images.forEach(({ id }) => {
+      .dispatch("image/bindImagesOfUser", this.userId)
+      .then(() => {
+        this.images.forEach(({ id }) => {
           this.getImageURL(id).then(url => (this.imgsSrc[id] = url));
         });
       })
@@ -129,8 +140,8 @@ export default class Profile extends Vue {
 
   get getImages() {
     return this.active === "popular"
-      ? sortImagesByPopularity(this.images)
-      : this.images;
+      ? sortImagesByPopularity(this.images ?? [])
+      : this.images ?? [];
   }
 
   get getUser() {
@@ -156,22 +167,10 @@ export default class Profile extends Vue {
   handleActive(id: string) {
     this.active = id;
   }
-
-  showError(error: Error, variant = "danger") {
-    this.$bvToast.toast(error.message, {
-      title: "Auth error",
-      variant: variant,
-      solid: true,
-      autoHideDelay: 2000
-    });
-  }
 }
 </script>
 
 <style scoped>
-b-column a {
-  color: teal;
-}
 .nav-link {
   color: whitesmoke;
 }
@@ -185,16 +184,16 @@ b-column a {
   width: 100vw;
   justify-content: space-between;
 }
-li {
+.tab-item {
   color: antiquewhite;
   margin: 0px 10px 0px 10px;
 }
-p {
+.description {
   margin-bottom: 40px;
   color: rgb(23, 49, 40);
 }
-a:hover {
-  color: rgb(83, 83, 83);
+.tab-item > a:hover {
+  color: rgb(114, 111, 111);
 }
 #profile {
   height: 300px;
@@ -208,10 +207,12 @@ a:hover {
   flex-direction: column;
   align-items: center;
 }
-h1 {
+
+.username {
   font-style: bold;
   color: rgb(23, 49, 40);
 }
+
 .gallery-container {
   display: grid;
   margin: 35px;
@@ -220,7 +221,8 @@ h1 {
   grid-gap: 1rem;
   grid-auto-flow: row dense;
 }
-img {
+
+.image {
   width: 100%;
   height: 100%;
   object-fit: cover;

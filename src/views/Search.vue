@@ -1,6 +1,49 @@
 <template>
   <div id="search">
-    <b-nav tabs fill class="mx-4 rounded">
+    <transition name="slide" mode="out-in">
+      <div v-if="route === '/'">
+        <b-carousel
+          id="carousel-1"
+          controls
+          indicators
+          background="#ababab"
+          img-width="1024"
+          img-height="480"
+          style="text-shadow: 1px 1px 2px #333;"
+        >
+          <!-- Text slides with image -->
+          <b-carousel-slide
+            img-height="480"
+            text="Your gallery"
+            img-src="https://picsum.photos/1024/480/?image=52"
+            ><h1>Welcome to Photos' Sea!</h1></b-carousel-slide
+          >
+
+          <!-- Slides with custom text -->
+          <b-carousel-slide
+            img-height="480"
+            img-src="https://picsum.photos/1024/480/?image=54"
+          >
+            <h1>Photos' Sea!</h1>
+          </b-carousel-slide>
+
+          <!-- Slides with image only -->
+          <b-carousel-slide
+            img-height="480"
+            img-src="https://picsum.photos/1024/480/?image=58"
+            ><h1>Photos' Sea!</h1></b-carousel-slide
+          >
+
+          <!-- Slides with img slot -->
+          <!-- Note the classes .d-block and .img-fluid to prevent browser default image alignment -->
+          <b-carousel-slide
+            img-height="480"
+            img-src="https://picsum.photos/1024/480/?image=55"
+            ><h1>Photos' Sea!</h1>
+          </b-carousel-slide>
+        </b-carousel>
+      </div> </transition
+    ><b-nav tabs fill class="mx-4 rounded">
       <b-nav-item
         class="border-left border-bottom rounded-left"
         @click="handleActive('photos')"
@@ -22,14 +65,11 @@
         toggle-class="nav-link-custom"
         center
       >
-        <b-dropdown-item
-          to="search?order=recents"
-          :active="sortingBy === 'recents'"
-        >
+        <b-dropdown-item to="?order=recents" :active="sortingBy === 'recents'">
           Most Recents
         </b-dropdown-item>
         <b-dropdown-item
-          to="search?order=popular"
+          :to="{ query: { order: 'popular' } }"
           :active="sortingBy === 'popular'"
         >
           Most Popular
@@ -50,6 +90,7 @@
           <img
             v-show="active === 'photos'"
             :id="element.id"
+            class="photo-image"
             src=""
             :alt="element.id"
             @error="updateImage"
@@ -77,14 +118,14 @@
         </router-link>
       </b-overlay>
     </div>
-    <section>
+    <section class="next-button">
       <a href="#">Next ></a>
     </section>
   </div>
 </template>
 
 <script lang="ts">
-import { Prop, Component, Vue } from "vue-property-decorator";
+import { Prop, Component, Mixins } from "vue-property-decorator";
 import { mapState, mapGetters } from "vuex";
 import {
   Image,
@@ -92,6 +133,7 @@ import {
   orderImagesRecents
 } from "../store/modules/images";
 import { User, orderUsersPopularity } from "../store/modules/users";
+import { ShowErrorMixin } from "@/mixins/showError";
 
 @Component({
   computed: {
@@ -101,11 +143,12 @@ import { User, orderUsersPopularity } from "../store/modules/users";
     ...mapGetters("image", ["getImageURL"])
   }
 })
-export default class Search extends Vue {
+export default class Search extends Mixins(ShowErrorMixin) {
   public images!: Array<Image>;
   public users!: Array<User>;
   public authUser!: User | null;
   public getImageURL!: (id: string) => Promise<string>;
+  @Prop({ default: "/", type: String }) route!: string;
   @Prop({ default: "recents", type: String }) sortingBy!: string;
 
   loaded = 0;
@@ -120,9 +163,8 @@ export default class Search extends Vue {
     this.imgsSrc = {};
     this.$store
       .dispatch("image/bindPublicImagesRef")
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       .then(() => {
-        this.images.forEach(({ id }) => {
+        this.images.sort(orderImagesRecents).forEach(({ id }) => {
           this.getImageURL(id).then(url => (this.imgsSrc[id] = url));
         });
       })
@@ -131,14 +173,14 @@ export default class Search extends Vue {
   }
 
   getImages() {
-    const method =
-      this.sortingBy === "recents" ? orderImagesRecents : orderImagesPopularity;
-    return this.images.slice().sort(method);
+    return this.sortingBy === "popular"
+      ? [...this.images].sort(orderImagesPopularity)
+      : this.images;
   }
 
   getUsers() {
     return this.sortingBy === "popular"
-      ? this.users.slice().sort(orderUsersPopularity)
+      ? [...this.users].sort(orderUsersPopularity)
       : this.users;
   }
 
@@ -152,27 +194,11 @@ export default class Search extends Vue {
     const image = t.target as HTMLImageElement;
     image.src = this.imgsSrc[image.id] || "#";
   }
-  showError(error: Error, variant = "danger") {
-    this.$bvToast.toast(error.message, {
-      title: "Auth error",
-      variant: variant,
-      solid: true,
-      autoHideDelay: 2000
-    });
-  }
 }
 </script>
 
 <style scoped>
-a {
-  color: whitesmoke;
-}
-
-a:hover {
-  color: rgb(104, 124, 120);
-}
-
-section {
+.next-button {
   text-align: right;
   margin: 35px;
 }
@@ -201,7 +227,12 @@ section {
   color: teal;
 }
 
-img {
+.carousel-item {
+  height: 300px;
+}
+
+.photo-image,
+.card-img {
   width: 100%;
   height: 100%;
   object-fit: cover;

@@ -1,13 +1,14 @@
 <template>
   <div id="auth" :class="route.replace(/ /g, '')">
     <main>
-      <h4>{{ route.toUpperCase() }}</h4>
-      <hr />
+      <h4 class="auth-title">{{ route.toUpperCase() }}</h4>
+      <hr class="hr" />
 
       <b-form class="auth-form" @submit.prevent="onSubmit">
         <b-input-group v-if="route === 'sign up'" class="mb-4">
           <b-form-input
-            v-model="username"
+            class="not-chekbox-input"
+            v-model="form.username"
             placeholder="Username"
             required
             autofocus
@@ -20,7 +21,8 @@
 
         <b-input-group class="mb-4">
           <b-form-input
-            v-model="email"
+            class="not-chekbox-input"
+            v-model="form.email"
             placeholder="Email"
             required
           ></b-form-input>
@@ -35,7 +37,8 @@
         </a>
         <b-input-group class="mb-4">
           <b-form-input
-            v-model="password"
+            class="not-chekbox-input"
+            v-model="form.password"
             type="password"
             placeholder="Password"
             required
@@ -63,12 +66,13 @@
           {{ route }}
         </b-button>
       </b-form>
-      <aside>
-        <aside class="line">OR</aside>
-      </aside>
-      <a @click="signInGoogle" href="#">
+      <div class="line-wrapper">
+        <div class="line">OR</div>
+      </div>
+      <a class="auth-link" @click="signInGoogle" href="#">
         <img
           :src="routeGoogleImage"
+          class="google-image"
           @mousedown="googleImage = 'pressed'"
           @mouseup="googleImage = 'normal'"
           @focus="googleImage = 'focus'"
@@ -77,51 +81,34 @@
         />
       </a>
       <div class="or-container">
-        <router-link v-if="route === 'login'" class="or-link" to="signup">
-          Or sign up >
-        </router-link>
-        <router-link v-else class="or-link" to="login">Or login ></router-link>
+        <a class="or-link" @click="changeAuthType">
+          Or {{ this.route === "login" ? "sign up" : "login" }} >
+        </a>
       </div>
     </main>
   </div>
 </template>
 
 <script lang="ts">
-import { Prop, Component, Vue } from "vue-property-decorator";
+import { Prop, Component, Mixins } from "vue-property-decorator";
 import { AuthUser } from "../store/modules/auth";
+import { ShowErrorMixin } from "../mixins/showError";
 
 @Component
-export default class Auth extends Vue {
+export default class Auth extends Mixins(ShowErrorMixin) {
   @Prop({ required: true, type: String }) readonly route!: string;
 
   isClicked = false;
 
-  email = "";
-  username = "";
-  password = "";
+  form = { email: "", username: "", password: "" };
 
   routeGoogleImage: string = require("@/assets/sign-in-google/btn_google_signin_dark_normal_web.png");
-
-  created() {
-    this.email = "";
-    this.username = "";
-    this.password = "";
-  }
 
   get googleImage(): string {
     return this.routeGoogleImage;
   }
   set googleImage(value: string) {
     this.routeGoogleImage = require(`@/assets/sign-in-google/btn_google_signin_dark_${value}_web.png`);
-  }
-
-  showError(error: Error) {
-    this.$bvToast.toast(error.message, {
-      title: "Auth error",
-      variant: "danger",
-      solid: true,
-      autoHideDelay: 2000
-    });
   }
 
   onSubmit() {
@@ -131,12 +118,17 @@ export default class Auth extends Vue {
         : "registerUserWithEmailAndPassword";
     this.$store
       .dispatch("auth/" + action, {
-        email: this.email,
-        username: this.username,
-        password: this.password
+        email: this.form.email,
+        username: this.form.username,
+        password: this.form.password
       } as AuthUser)
       .then(() => this.$router.push("/"))
       .catch(this.showError);
+  }
+
+  changeAuthType() {
+    this.form = { email: "", username: "", password: "" };
+    this.$router.push(this.route === "login" ? "/signup" : "/login");
   }
 
   signInGoogle() {
@@ -179,15 +171,15 @@ export default class Auth extends Vue {
   text-align: center;
 }
 
-img {
+.google-image {
   margin: 20px;
 }
 
-img:active {
+.google-image:active {
   border: none;
 }
 
-img:hover {
+.google-image:hover {
   box-shadow: 0 8px 6px -6px black;
 }
 
@@ -198,7 +190,7 @@ img:hover {
   justify-content: flex-start;
   align-items: flex-start;
 }
-h4 {
+.auth-title {
   color: #b3b3b3;
   font-family: Arial, Helvetica, sans-serif;
   font-size: 30px;
@@ -210,28 +202,25 @@ h4 {
   font-size: 15px;
 }
 
-a.password-reset {
+.password-reset {
   font-size: 10px;
-}
-
-a {
   text-align: left;
   color: #4f81b3;
   text-decoration: none;
 }
 
-a:hover {
+.password-reset:hover {
   text-decoration: underline;
 }
 
-hr {
+.hr {
   background-color: #bce9ec;
   width: 90%;
   height: 1px;
   margin: 0px 0px 30px 0px;
 }
 
-input:not([type="checkbox"]) {
+.not-checkbox-input {
   height: 100%;
   width: 13em;
   border-radius: 2.5px 0px 0px 2.5px;
@@ -252,9 +241,11 @@ input:not([type="checkbox"]) {
   align-self: center;
 }
 
-aside {
+.line,
+.line-wrapper {
   width: 100%;
 }
+
 .line {
   display: flex;
   flex-basis: 100%;
@@ -278,9 +269,15 @@ aside {
   width: 100%;
 }
 .or-link {
-  /* color: #4f81b3; */
+  color: #4f81b3;
   position: relative;
   left: 35%;
   top: -10px;
+}
+
+.or-link:hover {
+  color: #4f81b3;
+  cursor: pointer;
+  text-decoration: underline;
 }
 </style>

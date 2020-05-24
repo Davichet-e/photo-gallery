@@ -36,6 +36,7 @@ export const orderImagesRecents = (a: Image, b: Image) =>
 
 export interface ImageState {
   images: Array<Image>;
+  actualImage: Image | null;
 }
 
 export function sortImagesByPopularity(images: Array<Image>) {
@@ -46,7 +47,8 @@ export const image = {
   namespaced: true,
 
   state: {
-    images: []
+    images: [],
+    actualImage: null
   },
 
   getters: {
@@ -67,14 +69,12 @@ export const image = {
       return state.images.sort(orderImagesPopularity);
     },
 
-    getImageURL() {
-      return (id: string) =>
-        firebase
-          .storage()
-          .ref()
-          .child(id)
-          .getDownloadURL();
-    },
+    getImageURL: () => (id: string) =>
+      firebase
+        .storage()
+        .ref()
+        .child(id)
+        .getDownloadURL(),
 
     getImagesURL(state: ImageState) {
       return state.images.map(({ id }) => ({
@@ -92,14 +92,28 @@ export const image = {
     bindImagesRef: firestoreAction(({ bindFirestoreRef }) =>
       bindFirestoreRef("images", db.collection("photos").orderBy("date"))
     ),
-    bindPublicImagesRef: firestoreAction(({ bindFirestoreRef }) =>
+    bindImagesOfUser: firestoreAction(({ bindFirestoreRef }, userId: string) =>
       bindFirestoreRef(
         "images",
-        db.collection("photos").where("public", "==", true)
+        db
+          .collection("photos")
+          .where("author", "==", db.collection("users").doc(userId))
       )
     ),
+    bindImageById: firestoreAction(({ bindFirestoreRef }, imageId: string) =>
+      bindFirestoreRef("actualImage", db.collection("photos").doc(imageId))
+    ),
+    bindPublicImagesRef: firestoreAction(
+      ({ bindFirestoreRef, unbindFirestoreRef }) => {
+        unbindFirestoreRef("actualImage");
+        return bindFirestoreRef(
+          "images",
+          db.collection("photos").where("public", "==", true)
+        );
+      }
+    ),
     addPhoto: firestoreAction(
-      (_state, { image, file }: { image: Image; file: File }) => {
+      async (_state, { image, file }: { image: Image; file: File }) => {
         const ref = db.collection("photos").doc();
         return firebase
           .storage()

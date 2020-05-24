@@ -26,9 +26,9 @@
               size="sm"
               placeholder="Add a comment"
             ></b-form-input>
-            <b-form-invalid-feedback :state="commentState"
-              >The text can't be empty.</b-form-invalid-feedback
-            >
+            <b-form-invalid-feedback :state="commentState">
+              The text can't be empty.
+            </b-form-invalid-feedback>
             <b-button
               @click="commentActive = false"
               class="ml-auto mt-2 mx-2"
@@ -128,7 +128,7 @@
           {{ imageTitle }}
         </h4>
         <b-input v-else class="w-50" v-model="imageTitle">
-          {{ image.title }}
+          {{ imageTitle }}
         </b-input>
         <template v-if="authUser && imageAuthor.id === authUser.id">
           <b-button
@@ -247,37 +247,41 @@
 </template>
 
 <script lang="ts">
-import { Component, Prop, Vue } from "vue-property-decorator";
+import { Component, Prop, Mixins } from "vue-property-decorator";
 import { firestore } from "firebase/app";
 
 import { Image, Comment, FirestoreRef } from "@/store/modules/images";
 import { mapState, mapGetters } from "vuex";
 import { User } from "../store/modules/users";
 import { Tag } from "../store/modules/tags";
+import { ShowErrorMixin } from "../mixins/showError";
 
 @Component({
   computed: {
     ...mapState("auth", ["authUser"]),
+    ...mapState("image", ["images", "actualImage"]),
     ...mapState("tag", ["tags"]),
     ...mapGetters("auth", ["userReference"]),
     ...mapGetters("image", ["getImageById", "getImageURL"]),
     ...mapGetters("user", ["isBeingFollowed"])
   }
 })
-export default class ImageDetails extends Vue {
+export default class ImageDetails extends Mixins(ShowErrorMixin) {
   public authUser!: User | null;
   public userReference!: FirestoreRef;
+  public actualImage!: Image | null;
+  public images!: Image;
   public tags!: Array<Tag>;
   public getImageById!: (id: string) => Image;
   public getImageURL!: (id: string) => Promise<string>;
   public isBeingFollowed!: (user: User, followingId: string) => boolean;
   @Prop({ required: true, type: String }) photoId!: string;
 
+  image: Image | null = null;
   loaded = false;
   itFollows = false;
   imageTags: Array<Tag> = [];
   editing = false;
-  image: Image | null = null;
   tagsToAdd: Array<Tag> = [];
   searchTextInput = "";
   imageTitle = "";
@@ -291,30 +295,35 @@ export default class ImageDetails extends Vue {
   dislikes = 0;
   selected: string | null = null;
 
-  created() {
-    // RENDER ONLY THIS IMAGE
-    this.$store.dispatch("image/bindImagesRef").then(() => {
-      this.image = this.getImageById(this.photoId);
-      this.imageTitle = this.image.title;
-      this.imageDescription = this.image.description;
-      this.imageTags = this.image.tags;
+  async created() {
+    const image = this.getImageById(this.photoId);
+    if (!image) {
+      this.image = (await this.$store
+        .dispatch("image/bindImageById", this.photoId)
+        .catch(this.showError)) as Image;
+    } else {
+      this.image = image;
+    }
 
-      this.likes = this.image.likes;
-      this.dislikes = this.image.dislikes;
-      if (this.authUser) {
-        this.itFollows = this.isBeingFollowed(
-          this.image.author as User,
-          this.authUser.id
-        );
-      }
-      this.getImageURL(this.photoId)
-        .then(url => (this.imageURL = url))
-        .catch(this.showError);
-    });
+    this.imageTitle = this.image.title;
+    this.imageDescription = this.image.description;
+    this.imageTags = this.image.tags;
+
+    this.likes = this.image.likes;
+    this.dislikes = this.image.dislikes;
+    if (this.authUser) {
+      this.itFollows = this.isBeingFollowed(
+        this.image.author as User,
+        this.authUser.id
+      );
+    }
+    this.getImageURL(this.photoId)
+      .then(url => (this.imageURL = url))
+      .catch(this.showError);
   }
 
   get imageAuthor() {
-    return this.image?.author ?? {};
+    return this.image ? this.image.author : {};
   }
 
   get comments() {
@@ -323,15 +332,6 @@ export default class ImageDetails extends Vue {
 
   resetEditTags() {
     this.tagsToAdd = this.imageTags.slice();
-  }
-
-  showError(error: Error, variant = "danger") {
-    this.$bvToast.toast(error.message, {
-      title: "Auth error",
-      variant: variant,
-      solid: true,
-      autoHideDelay: 2000
-    });
   }
 
   get searchTag() {

@@ -194,13 +194,14 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue, Prop } from "vue-property-decorator";
+import { Component, Prop, Mixins } from "vue-property-decorator";
 import { mapState, mapGetters } from "vuex";
 import { Image, FirestoreRef } from "../store/modules/images";
 import { User } from "../store/modules/users";
 import { firestore } from "firebase/app";
 import { Tag } from "../store/modules/tags";
 import { db } from "../firebase";
+import { ShowErrorMixin } from "../mixins/showError";
 
 @Component({
   computed: {
@@ -215,9 +216,9 @@ import { db } from "../firebase";
     ...mapGetters("user", ["usersFollowedBy"])
   }
 })
-export default class About extends Vue {
+export default class About extends Mixins(ShowErrorMixin) {
   @Prop({ default: "myphotos", type: String }) route!: string;
-  public authUser!: User | null;
+  public authUser!: User;
   public userReference!: FirestoreRef | null;
   public tags!: Array<Tag>;
   public getImagesOfUser!: (id: string) => Array<Image>;
@@ -244,8 +245,7 @@ export default class About extends Vue {
     this.$store
       .dispatch("user/bindUsersRef")
       .then(
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        () => (this.followingUsers = this.usersFollowedBy(this.authUser!.id))
+        () => (this.followingUsers = this.usersFollowedBy(this.authUser.id))
       )
       .catch(this.showError);
 
@@ -257,15 +257,12 @@ export default class About extends Vue {
       .catch(this.showError);
 
     this.$store
-      .dispatch("image/bindImagesRef")
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      .then(() => this.getImagesOfUser(this.authUser!.id!))
-      .then(images => {
-        this.images = images;
-        images.forEach(({ id }) => {
+      .dispatch("image/bindImagesOfUser")
+      .then(() =>
+        this.images.forEach(({ id }) => {
           this.getImageURL(id).then(url => (this.imgsSrc[id] = url));
-        });
-      })
+        })
+      )
       .catch(this.showError);
   }
 
@@ -279,15 +276,6 @@ export default class About extends Vue {
 
   get items() {
     return this.route === "myphotos" ? this.getImages : this.following;
-  }
-
-  showError(error: Error, variant = "danger") {
-    this.$bvToast.toast(error.message, {
-      title: "Auth error",
-      variant: variant,
-      solid: true,
-      autoHideDelay: 2000
-    });
   }
 
   addTag() {
@@ -327,28 +315,26 @@ export default class About extends Vue {
         this.tagsSelected[id] = false;
       }
     }
-    if (this.userReference && this.authUser) {
-      if (this.numberOfImagesOfUser(this.authUser.id) <= 50) {
-        this.$store
-          .dispatch("image/addPhoto", {
-            image: {
-              author: this.userReference,
-              title: this.title,
-              description: this.description,
-              date: firestore.Timestamp.now(),
-              comments: [],
-              tags,
-              public: this.visibilitySwitch,
-              likes: 0,
-              dislikes: 0
-            },
-            file: this.file
-          })
-          .then(() => this.$router.go(0))
-          .catch(this.showError);
-      } else
-        this.showError(new Error("You have reached the photo upload limit."));
-    }
+    if (this.numberOfImagesOfUser(this.authUser.id) <= 50) {
+      this.$store
+        .dispatch("image/addPhoto", {
+          image: {
+            author: this.userReference,
+            title: this.title,
+            description: this.description,
+            date: firestore.Timestamp.now(),
+            comments: [],
+            tags,
+            public: this.visibilitySwitch,
+            likes: 0,
+            dislikes: 0
+          },
+          file: this.file
+        })
+        .then(() => this.$router.go(0))
+        .catch(this.showError);
+    } else
+      this.showError(new Error("You have reached the photo upload limit."));
   }
 }
 </script>
@@ -410,7 +396,7 @@ div > span:hover {
   grid-auto-flow: row dense;
 }
 
-img {
+.gallery-image {
   width: 100%;
   height: 100%;
   object-fit: cover;

@@ -14,6 +14,7 @@ export interface User {
 
 export interface UserState {
   users: Array<User>;
+  actualUser: User | null;
 }
 
 export const orderUsersPopularity = (a: User, b: User) =>
@@ -23,7 +24,8 @@ export const user = {
   namespaced: true,
 
   state: {
-    users: []
+    users: [],
+    actualUser: null
   },
 
   getters: {
@@ -33,7 +35,7 @@ export const user = {
     getUserById(state: UserState) {
       return (userId: string) => state.users.find(({ id }) => id === userId);
     },
-    isBeingFollowed(_state: UserState) {
+    isBeingFollowed() {
       return (user: User, followingId: string) =>
         user.followers.includes(followingId);
     },
@@ -49,8 +51,14 @@ export const user = {
   mutations: vuexfireMutations,
 
   actions: {
-    bindUsersRef: firestoreAction(({ bindFirestoreRef }) =>
-      bindFirestoreRef("users", db.collection("users"))
+    bindUsersRef: firestoreAction(
+      ({ bindFirestoreRef, unbindFirestoreRef }) => {
+        unbindFirestoreRef("actualUser");
+        return bindFirestoreRef("users", db.collection("users"));
+      }
+    ),
+    bindUserById: firestoreAction(({ bindFirestoreRef }, userId: string) =>
+      bindFirestoreRef("actualUser", db.collection("users").doc(userId))
     ),
     addUser: firestoreAction((_context, user: User) =>
       db

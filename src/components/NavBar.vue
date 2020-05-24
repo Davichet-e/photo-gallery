@@ -6,7 +6,7 @@
     toggleable="lg"
     v-if="this.$route.path !== '/login' && this.$route.path !== '/signup'"
   >
-    <b-navbar-brand href="#">NavBar</b-navbar-brand>
+    <b-navbar-brand to="/">Photos' Sea</b-navbar-brand>
 
     <b-navbar-toggle target="nav-collapse"></b-navbar-toggle>
     <b-collapse id="nav-collapse" is-nav>
