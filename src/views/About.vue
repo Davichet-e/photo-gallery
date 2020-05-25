@@ -329,7 +329,9 @@ export default class About extends Mixins(ShowErrorMixin, BadWordsMixin) {
   }
 
   addTag() {
-    this.$store.dispatch("tag/addTag", this.addTagText);
+    if (this.manageTags.some(({ value }) => value === this.addTagText))
+      this.showError(new Error("That tag already exists"));
+    else this.$store.dispatch("tag/addTag", this.addTagText);
   }
 
   removeTag(tag: Tag) {
@@ -376,8 +378,8 @@ export default class About extends Mixins(ShowErrorMixin, BadWordsMixin) {
             comments: [],
             tags,
             public: this.visibilitySwitch,
-            likes: 0,
-            dislikes: 0
+            likes: [],
+            dislikes: []
           },
           file: this.file
         })

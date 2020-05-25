@@ -24,12 +24,12 @@ export interface Image {
   comments: Array<Comment>;
   tags: Array<Tag>;
   public: boolean;
-  likes: number;
-  dislikes: number;
+  likes: Array<string>;
+  dislikes: Array<string>;
 }
 
 export const orderImagesPopularity = (a: Image, b: Image) =>
-  b.likes - b.dislikes - (a.likes - a.dislikes);
+  b.likes.length - b.dislikes.length - (a.likes.length - a.dislikes.length);
 
 export const orderImagesRecents = (a: Image, b: Image) =>
   b.date.seconds - a.date.seconds;
@@ -156,7 +156,7 @@ export const image = {
           photoId,
           likes,
           dislikes
-        }: { photoId: string; likes: number; dislikes: number }
+        }: { photoId: string; likes: Array<string>; dislikes: Array<string> }
       ) => {
         db.collection("photos")
           .doc(photoId)

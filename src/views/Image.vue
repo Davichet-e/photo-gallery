@@ -98,7 +98,7 @@
         >
           <b-icon-arrow-up></b-icon-arrow-up>
           <small>
-            <b>{{ likes }}</b>
+            <b>{{ likes.length }}</b>
           </small>
         </b-button>
         <b-button
@@ -111,7 +111,7 @@
         >
           <b-icon-arrow-down></b-icon-arrow-down>
           <small>
-            <b>{{ dislikes }}</b>
+            <b>{{ dislikes.length }}</b>
           </small>
         </b-button>
         <b-button
@@ -142,11 +142,7 @@
             size="sm"
             pill
             variant="info"
-            @click.once="
-              $store
-                .dispatch('tag/bindTagsRef')
-                .then(tags => (tagsToAdd = tags))
-            "
+            @click.once="$store.dispatch('tag/bindTagsRef')"
             @click="editPhoto"
           >
             <b-icon-screwdriver></b-icon-screwdriver>
@@ -314,8 +310,8 @@ export default class ImageDetails extends Mixins(
   commentText = "";
   commentActive = false;
   photosUploaded = Math.floor(Math.random() * 100);
-  likes = 0;
-  dislikes = 0;
+  likes: Array<string> = [];
+  dislikes: Array<string> = [];
   selected: string | null = null;
   stateEditTitle: boolean | null = null;
   stateEditDescription: boolean | null = null;
@@ -330,7 +326,6 @@ export default class ImageDetails extends Mixins(
       this.image = image;
     }
     this.visibilitySwitch = this.image.public;
-
     this.imageTitle = this.image.title;
     this.imageDescription = this.image.description;
     this.imageTags = this.image.tags;
@@ -338,6 +333,11 @@ export default class ImageDetails extends Mixins(
     this.likes = this.image.likes;
     this.dislikes = this.image.dislikes;
     if (this.authUser) {
+      if (this.likes.includes(this.authUser.id)) {
+        this.selected = "likes";
+      } else if (this.dislikes.includes(this.authUser.id))
+        this.selected = "dislikes";
+
       this.itFollows = this.isBeingFollowed(
         this.image.author as User,
         this.authUser.id
@@ -373,35 +373,39 @@ export default class ImageDetails extends Mixins(
   }
 
   handleVote(type: string) {
-    if (this.selected === "likes") {
-      if (type === "dislikes") {
-        this.likes--;
-        this.dislikes++;
-        this.selected = type;
+    if (this.authUser) {
+      const indexLikes = this.likes.indexOf(this.authUser.id);
+      const indexDisikes = this.likes.indexOf(this.authUser.id);
+      if (this.selected === "likes") {
+        if (type === "dislikes") {
+          this.likes.splice(indexDisikes, 1);
+          this.dislikes.push(this.authUser.id);
+          this.selected = type;
+        } else {
+          this.selected = null;
+          this.likes.splice(indexLikes, 1);
+        }
+      } else if (this.selected === "dislikes") {
+        if (type === "likes") {
+          this.dislikes.splice(indexDisikes, 1);
+          this.likes.push(this.authUser.id);
+          this.selected = type;
+        } else {
+          this.selected = null;
+          this.dislikes.splice(indexDisikes, 1);
+        }
       } else {
-        this.selected = null;
-        this.likes--;
-      }
-    } else if (this.selected === "dislikes") {
-      if (type === "likes") {
-        this.dislikes--;
-        this.likes++;
-        this.selected = type;
-      } else {
-        this.selected = null;
-        this.dislikes--;
-      }
-    } else {
-      if (type === "likes") this.likes++;
-      else this.dislikes++;
+        if (type === "likes") this.likes.push(this.authUser.id);
+        else this.dislikes.push(this.authUser.id);
 
-      this.selected = type;
+        this.selected = type;
+      }
+      this.$store.dispatch("image/voteImage", {
+        photoId: this.photoId,
+        likes: this.likes,
+        dislikes: this.dislikes
+      });
     }
-    this.$store.dispatch("image/voteImage", {
-      photoId: this.photoId,
-      likes: this.likes,
-      dislikes: this.dislikes
-    });
   }
 
   saveTags() {
@@ -443,7 +447,10 @@ export default class ImageDetails extends Mixins(
     this.editing = true;
     this.stateEditTitle = null;
     this.stateEditDescription = null;
-    this.tagsToAdd = [...this.imageTags];
+    if (this.image) {
+      this.tagsToAdd = [...this.image.tags];
+      this.imageTags = [...this.image.tags];
+    }
   }
 
   deletePhoto() {
@@ -454,7 +461,7 @@ export default class ImageDetails extends Mixins(
         .catch(this.showError);
     else
       this.showError(
-        new Error("You can't delete photos with comment"),
+        new Error("You can't delete photos with comments"),
         "Delete photo error"
       );
   }
@@ -512,7 +519,7 @@ export default class ImageDetails extends Mixins(
         this.stateEditDescription = false;
       }
 
-      if (!error)
+      if (!error) {
         this.$store
           .dispatch("image/editImage", {
             title: this.imageTitle,
@@ -525,7 +532,8 @@ export default class ImageDetails extends Mixins(
             this.editing = false;
           })
           .catch(this.showError);
-      else this.showError(new Error(error), "Invalid edit");
+        // this.imageTags =
+      } else this.showError(new Error(error), "Invalid edit");
     }
   }
 }
