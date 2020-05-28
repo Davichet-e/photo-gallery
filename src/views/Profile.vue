@@ -95,7 +95,7 @@ import { Component, Prop, Mixins } from "vue-property-decorator";
 import { mapGetters, mapState } from "vuex";
 import { User } from "../store/modules/users";
 import { Image, sortImagesByPopularity } from "../store/modules/images";
-import { ShowErrorMixin } from "../mixins/showError";
+import { ShowToastMixin } from "../mixins/showToast";
 
 @Component({
   computed: {
@@ -105,7 +105,7 @@ import { ShowErrorMixin } from "../mixins/showError";
     ...mapGetters("image", ["getImagesOfUser", "getImageURL"])
   }
 })
-export default class Profile extends Mixins(ShowErrorMixin) {
+export default class Profile extends Mixins(ShowToastMixin) {
   public actualUser!: User | null;
   public users!: Array<User>;
   public images!: Array<Image>;
@@ -126,7 +126,7 @@ export default class Profile extends Mixins(ShowErrorMixin) {
     if (!user) {
       this.user = (await this.$store
         .dispatch("user/bindUserById", this.userId)
-        .catch(this.showError)) as User;
+        .catch(this.fetchingError)) as User;
     } else this.user = user;
     this.$store
       .dispatch("image/bindPublicImagesOfUser", this.userId)
@@ -135,7 +135,7 @@ export default class Profile extends Mixins(ShowErrorMixin) {
           this.getImageURL(id).then(url => (this.imgsSrc[id] = url));
         });
       })
-      .catch(this.showError);
+      .catch(this.fetchingError);
   }
 
   get getImages() {

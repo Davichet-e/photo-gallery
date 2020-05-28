@@ -268,7 +268,7 @@ import { Image, Comment, FirestoreRef } from "@/store/modules/images";
 import { mapState, mapGetters } from "vuex";
 import { User } from "../store/modules/users";
 import { Tag } from "../store/modules/tags";
-import { ShowErrorMixin } from "../mixins/showError";
+import { ShowToastMixin } from "../mixins/showToast";
 import { BadWordsMixin } from "../mixins/badWords";
 
 @Component({
@@ -282,7 +282,7 @@ import { BadWordsMixin } from "../mixins/badWords";
   }
 })
 export default class ImageDetails extends Mixins(
-  ShowErrorMixin,
+  ShowToastMixin,
   BadWordsMixin
 ) {
   public authUser!: User | null;
@@ -322,7 +322,7 @@ export default class ImageDetails extends Mixins(
     if (!image) {
       this.image = (await this.$store
         .dispatch("image/bindImageById", this.photoId)
-        .catch(this.showError)) as Image;
+        .catch(this.fetchingError)) as Image;
     } else {
       this.image = image;
     }
@@ -348,7 +348,7 @@ export default class ImageDetails extends Mixins(
     }
     this.getImageURL(this.photoId)
       .then(url => (this.imageURL = url))
-      .catch(this.showError);
+      .catch(({ message }) => this.showToast(message));
   }
 
   get imageAuthor() {
@@ -434,10 +434,10 @@ export default class ImageDetails extends Mixins(
             this.commentActive = false;
             this.commentText = "";
           })
-          .catch(this.showError);
+          .catch(({ message }) => this.showToast(message));
       } else this.commentState = false;
     } else {
-      this.showError(new Error("You must be logged in to comment"));
+      this.showToast("You must be logged in to comment", "Auth error");
     }
   }
 
@@ -461,10 +461,10 @@ export default class ImageDetails extends Mixins(
       this.$store
         .dispatch("image/deleteImage", this.photoId)
         .then(() => this.$router.push("/about"))
-        .catch(this.showError);
+        .catch(this.fetchingError);
     else
-      this.showError(
-        new Error("You can't delete photos with comments"),
+      this.showToast(
+        "You can't delete photos with comments",
         "Delete photo error"
       );
   }
@@ -481,9 +481,12 @@ export default class ImageDetails extends Mixins(
         .then(() =>
           this.itFollows ? (this.itFollows = false) : (this.itFollows = true)
         )
-        .catch(this.showError);
+        .catch(this.fetchingError);
     } else {
-      this.showError(new Error("You must be logged in to follow another user"));
+      this.showToast(
+        "You must be logged in to follow another user",
+        "Auth error"
+      );
     }
   }
 
@@ -534,9 +537,9 @@ export default class ImageDetails extends Mixins(
           .then(() => {
             this.editing = false;
           })
-          .catch(this.showError);
+          .catch(this.fetchingError);
         // this.imageTags =
-      } else this.showError(new Error(error), "Invalid edit");
+      } else this.showToast(error, "Invalid edit");
     }
   }
 }

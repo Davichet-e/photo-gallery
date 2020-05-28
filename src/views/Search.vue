@@ -137,7 +137,7 @@ import {
   orderImagesRecents
 } from "../store/modules/images";
 import { User, orderUsersPopularity } from "../store/modules/users";
-import { ShowErrorMixin } from "@/mixins/showError";
+import { ShowToastMixin } from "@/mixins/showToast";
 import { Route, NavigationGuardNext } from "vue-router";
 
 Component.registerHooks(["beforeRouteUpdate"]);
@@ -149,7 +149,7 @@ Component.registerHooks(["beforeRouteUpdate"]);
     ...mapGetters("image", ["getImageURL", "getPublicImagesWithTag"])
   }
 })
-export default class Search extends Mixins(ShowErrorMixin) {
+export default class Search extends Mixins(ShowToastMixin) {
   public users!: Array<User>;
   public authUser!: User | null;
   public getImageURL!: (id: string) => Promise<string>;
@@ -174,10 +174,21 @@ export default class Search extends Mixins(ShowErrorMixin) {
   created() {
     this.$store
       .dispatch("image/bindPublicImagesRef")
-      .then(images => {
-        this.publicImages = images;
+      .then((images: Array<Image>) => {
+        this.publicImages = images.map(
+          image =>
+            ({
+              ...image,
+              id: image.id,
+              tags: image.tags.filter(tag => tag)
+            } as Image)
+        );
+
         if (this.searchTag)
-          this.images = this.getPublicImagesWithTag(images, this.searchTag);
+          this.images = this.getPublicImagesWithTag(
+            this.publicImages,
+            this.searchTag
+          );
         else this.images = images;
       })
       .then(() => {
@@ -185,8 +196,8 @@ export default class Search extends Mixins(ShowErrorMixin) {
           this.getImageURL(id).then(url => (this.imgsSrc[id] = url));
         });
       })
-      .catch(this.showError);
-    this.$store.dispatch("user/bindUsersRef").catch(this.showError);
+      .catch(this.fetchingError);
+    this.$store.dispatch("user/bindUsersRef").catch(this.fetchingError);
   }
 
   beforeRouteUpdate(to: Route, from: Route, next: NavigationGuardNext<Vue>) {

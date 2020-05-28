@@ -92,10 +92,10 @@
 <script lang="ts">
 import { Prop, Component, Mixins } from "vue-property-decorator";
 import { AuthUser } from "../store/modules/auth";
-import { ShowErrorMixin } from "../mixins/showError";
+import { ShowToastMixin } from "../mixins/showToast";
 
 @Component
-export default class Auth extends Mixins(ShowErrorMixin) {
+export default class Auth extends Mixins(ShowToastMixin) {
   @Prop({ required: true, type: String }) readonly route!: string;
 
   isClicked = false;
@@ -123,7 +123,7 @@ export default class Auth extends Mixins(ShowErrorMixin) {
         password: this.form.password
       } as AuthUser)
       .then(() => this.$router.push("/"))
-      .catch(this.showError);
+      .catch(({ message }) => this.showToast(message));
   }
 
   changeAuthType() {
@@ -135,7 +135,7 @@ export default class Auth extends Mixins(ShowErrorMixin) {
     this.$store
       .dispatch("auth/signInWithGoogle")
       .then(() => this.$router.push("/"))
-      .catch(this.showError);
+      .catch(({ message }) => this.showToast(message));
   }
 }
 </script>

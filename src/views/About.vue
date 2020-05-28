@@ -182,25 +182,66 @@
     >
       <div class="modal-tags">
         <b-badge
-          v-for="[key] of getHandleTags"
-          :key="key"
-          @click="removeTag(key)"
-          class="editable-tag"
-          >{{ key }}</b-badge
+          v-for="(value, i) of getHandleTags"
+          :key="i"
+          @click="handleTag(value)"
+          :class="[
+            'tag',
+            {
+              'editable-tag': tagAction === 'edit',
+              'deletable-tag': tagAction === 'delete'
+            }
+          ]"
+          >{{ value }}</b-badge
         >
-        <b-badge class="mx-2 mt-2" variant="info">
-          <b-icon-plus></b-icon-plus>
-        </b-badge>
       </div>
 
-      <b-form inline size="sm" class="mt-3 w-100" @submit.prevent="addTag">
+      <b-form
+        v-if="tagAction === 'add' || tagAction === 'edit'"
+        inline
+        size="sm"
+        class="mt-3 w-100"
+        @submit.prevent="tagAction === 'add' ? addTag() : editTag()"
+      >
         <b-input
+          v-if="tagAction === 'add'"
           size="sm"
           v-model="addTagText"
           placeholder="Add Tags..."
         ></b-input>
-        <b-btn type="submit" variant="info" size="sm">Add</b-btn>
+        <b-input
+          v-else-if="editTagText"
+          size="sm"
+          v-model="editTagText"
+          placeholder="Editing tag"
+        ></b-input>
+        <b-btn
+          v-show="tagAction === 'add' || editTagText"
+          type="submit"
+          :variant="tagAction === 'add' ? 'success' : 'info'"
+          size="sm"
+        >
+          {{ tagAction === "add" ? "Add" : "Edit" }}
+        </b-btn>
       </b-form>
+      <template v-slot:modal-footer="{ ok }">
+        <b-button size="sm" variant="info" @click="enableEditTag">
+          Edit
+        </b-button>
+        <b-button size="sm" variant="success" @click="enableAddTag">
+          Add
+        </b-button>
+        <b-button
+          size="sm"
+          variant="danger"
+          class="mr-auto"
+          @click="enableDeleteTag"
+        >
+          Delete
+        </b-button>
+
+        <b-button size="sm" variant="success" @click="ok()">Save</b-button>
+      </template>
     </b-modal>
   </div>
 </template>
@@ -213,7 +254,7 @@ import { User } from "../store/modules/users";
 import { firestore } from "firebase/app";
 import { Tag } from "../store/modules/tags";
 import { db } from "../firebase";
-import { ShowErrorMixin } from "../mixins/showError";
+import { ShowToastMixin } from "../mixins/showToast";
 import { BadWordsMixin } from "@/mixins/badWords";
 import { BvModalEvent } from "bootstrap-vue";
 
@@ -231,7 +272,7 @@ import { BvModalEvent } from "bootstrap-vue";
     ...mapGetters("user", ["usersFollowedBy"])
   }
 })
-export default class About extends Mixins(ShowErrorMixin, BadWordsMixin) {
+export default class About extends Mixins(ShowToastMixin, BadWordsMixin) {
   $refs!: {
     "image-form": HTMLFormElement;
   };
@@ -251,9 +292,12 @@ export default class About extends Mixins(ShowErrorMixin, BadWordsMixin) {
   stateTitle: boolean | null = null;
   stateDescription: boolean | null = null;
 
+  tagAction = "";
   manageTags: Record<string, string> = {};
   visibilitySwitch = true;
+  editingTag: string | null = null;
   addTagText = "";
+  editTagText = "";
   tagsSelected: Record<string, boolean> = {};
   file: File | null = null;
   imgsSrc: Record<string, string> = {};
@@ -271,20 +315,20 @@ export default class About extends Mixins(ShowErrorMixin, BadWordsMixin) {
           this.getImageURL(id).then(url => (this.imgsSrc[id] = url));
         })
       )
-      .catch(this.showError);
+      .catch(this.fetchingError);
     this.$store
       .dispatch("user/bindUsersRef")
       .then(
         () => (this.followingUsers = this.usersFollowedBy(this.authUser.id))
       )
-      .catch(this.showError);
+      .catch(this.fetchingError);
 
     this.$store
       .dispatch("tag/bindTagsRef")
       .then(() => {
         this.tags.forEach(({ id }) => (this.tagsSelected[id] = false));
       })
-      .catch(this.showError);
+      .catch(this.fetchingError);
   }
 
   get getImages() {
@@ -311,6 +355,7 @@ export default class About extends Mixins(ShowErrorMixin, BadWordsMixin) {
     // Trigger submit handler
     this.handleSubmit();
   }
+
   handleSubmit() {
     this.stateTitle = null;
     this.stateDescription = null;
@@ -332,31 +377,69 @@ export default class About extends Mixins(ShowErrorMixin, BadWordsMixin) {
     return this.tags.find(({ value: tagValue }) => tagValue === value)?.id;
   }
 
+  enableEditTag() {
+    this.showToast("To edit a tag, click one", "Edit tag", "info");
+    this.tagAction = "edit";
+  }
+
+  enableAddTag() {
+    this.tagAction = "add";
+  }
+
+  enableDeleteTag() {
+    this.showToast("To delete a tag, click one", "Delete tag", "info");
+    this.tagAction = "delete";
+  }
+
+  handleTag(tagValue: string) {
+    switch (this.tagAction) {
+      case "edit":
+        this.editingTag = tagValue;
+        this.editTagText = tagValue;
+        break;
+      case "delete":
+        this.removeTag(tagValue);
+        break;
+    }
+  }
+
   addTag() {
     if (
       Object.entries(this.manageTags).some(
         ([value]) => value === this.addTagText
       )
     )
-      this.showError(new Error("That tag already exists"));
+      this.showToast("That tag already exists");
+    else if (this.addTagText.includes(" "))
+      this.showToast("You cannot include spaces");
     else {
       this.$set(this.manageTags, this.addTagText, "added");
     }
   }
 
   editTag() {
-    // TODO
+    console.log(3);
+
+    if (!this.editTagText)
+      this.showToast("Cannot leave empty the edit tag field");
+    else if (this.editTagText.includes(" "))
+      this.showToast("Tag value cannot include whitespaces");
+    else {
+      delete this.manageTags[this.editingTag!];
+      this.$set(
+        this.manageTags,
+        `${this.editingTag} ${this.editTagText}`,
+        "modified"
+      );
+      this.tagAction = "";
+      // this.editTagText = ""
+    }
   }
 
-  // get displayManageTags() {
-  //   console.log(2);
-
-  //   return this.manageTags;
-  // }
   get getHandleTags() {
-    return Object.entries(this.manageTags).filter(
-      ([, method]) => method !== "deleted"
-    );
+    return Object.entries(this.manageTags)
+      .filter(([, method]) => method !== "deleted")
+      .map(([value]) => (value.includes(" ") ? value.split(" ")[1] : value));
   }
 
   removeTag(tagValue: string) {
@@ -382,9 +465,10 @@ export default class About extends Mixins(ShowErrorMixin, BadWordsMixin) {
       } else if (method === "deleted") {
         this.$store.dispatch("tag/deleteTag", this.tagId(value));
       } else if (method === "modified") {
+        const [oldValue, newValue] = value.split(" ");
         this.$store.dispatch("tag/updateTag", {
-          id: this.tagId(value),
-          value
+          id: this.tagId(oldValue),
+          value: newValue
         } as Tag);
       }
     }
@@ -423,9 +507,8 @@ export default class About extends Mixins(ShowErrorMixin, BadWordsMixin) {
           file: this.file
         })
         .then(() => this.$router.go(0))
-        .catch(this.showError);
-    } else
-      this.showError(new Error("You have reached the photo upload limit."));
+        .catch(({ message }) => this.showToast(message));
+    } else this.showToast("You have reached the photo upload limit.");
   }
 }
 </script>
@@ -449,21 +532,23 @@ export default class About extends Mixins(ShowErrorMixin, BadWordsMixin) {
   margin-bottom: 3px;
 }
 
-div > span:hover {
-  cursor: pointer;
-}
-
 .settings-header {
   text-align: center;
   color: peru;
 }
 
-.editable-tag {
+.tag {
   margin: 0.5em 0.5em 0 0.5em;
 }
 
-.editable-tag:hover {
+.deletable-tag:hover {
+  cursor: pointer;
   background-color: brown;
+}
+
+.editable-tag:hover {
+  cursor: pointer;
+  background-color: rgb(42, 151, 165);
 }
 
 .users-container {
