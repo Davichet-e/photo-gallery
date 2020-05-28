@@ -217,7 +217,9 @@ export default class Search extends Mixins(ShowToastMixin) {
 
   getImages() {
     return this.sortingBy === "popular"
-      ? [...this.images].sort(orderImagesPopularity)
+      ? [...this.images]
+          .filter(({ date }) => Date.now() - date.toMillis() < 604800000)
+          .sort(orderImagesPopularity)
       : this.images;
   }
 
