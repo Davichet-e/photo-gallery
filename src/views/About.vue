@@ -418,14 +418,12 @@ export default class About extends Mixins(ShowToastMixin, BadWordsMixin) {
   }
 
   editTag() {
-    console.log(3);
-
     if (!this.editTagText)
       this.showToast("Cannot leave empty the edit tag field");
     else if (this.editTagText.includes(" "))
       this.showToast("Tag value cannot include whitespaces");
     else {
-      delete this.manageTags[this.editingTag!];
+      if (this.editingTag) delete this.manageTags[this.editingTag];
       this.$set(
         this.manageTags,
         `${this.editingTag} ${this.editTagText}`,
