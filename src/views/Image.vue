@@ -320,14 +320,9 @@ export default class ImageDetails extends Mixins(
   async created() {
     const image = this.getImageById(this.photoId);
     if (!image) {
-      try {
-        this.image = (await this.$store
-          .dispatch("image/bindImageById", this.photoId)
-          .catch(this.showError)) as Image;
-      } catch (e) {
-        console.log(e);
-        this.image = image;
-      }
+      this.image = (await this.$store
+        .dispatch("image/bindImageById", this.photoId)
+        .catch(this.showError)) as Image;
     } else {
       this.image = image;
     }
