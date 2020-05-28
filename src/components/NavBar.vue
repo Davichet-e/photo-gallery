@@ -85,8 +85,7 @@
           >
             <b-list-group>
               <b-list-group-item :to="'/profile/' + authUser.id" variant="dark">
-                <b-icon-people-circle class="mr-2"></b-icon-people-circle>My
-                Profile
+                <b-icon-people class="mr-2"></b-icon-people>My Profile
               </b-list-group-item>
 
               <b-list-group-item to="/about/" variant="dark">

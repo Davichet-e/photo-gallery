@@ -174,7 +174,7 @@
       footer-bg-variant="dark"
       centered
       title="Manage tags"
-      @ok="manageTags"
+      @ok="handleManageTags"
       footer-text-variant="secondary"
       ok-title="Save"
       ok-variant="success"
@@ -182,11 +182,11 @@
     >
       <div class="modal-tags">
         <b-badge
-          v-for="tag of manageTags"
-          :key="tag.id"
-          @click="removeTag(tag)"
+          v-for="[key] of getHandleTags"
+          :key="key"
+          @click="removeTag(key)"
           class="editable-tag"
-          >{{ tag.value }}</b-badge
+          >{{ key }}</b-badge
         >
         <b-badge class="mx-2 mt-2" variant="info">
           <b-icon-plus></b-icon-plus>
@@ -251,7 +251,7 @@ export default class About extends Mixins(ShowErrorMixin, BadWordsMixin) {
   stateTitle: boolean | null = null;
   stateDescription: boolean | null = null;
 
-  manageTags: Array<Tag> = [];
+  manageTags: Record<string, string> = {};
   visibilitySwitch = true;
   addTagText = "";
   tagsSelected: Record<string, boolean> = {};
@@ -328,18 +328,46 @@ export default class About extends Mixins(ShowErrorMixin, BadWordsMixin) {
     }
   }
 
-  addTag() {
-    if (this.manageTags.some(({ value }) => value === this.addTagText))
-      this.showError(new Error("That tag already exists"));
-    else this.$store.dispatch("tag/addTag", this.addTagText);
+  tagId(value: string) {
+    return this.tags.find(({ value: tagValue }) => tagValue === value)?.id;
   }
 
-  removeTag(tag: Tag) {
-    this.manageTags.splice(this.manageTags.indexOf(tag), 1);
+  addTag() {
+    if (
+      Object.entries(this.manageTags).some(
+        ([value]) => value === this.addTagText
+      )
+    )
+      this.showError(new Error("That tag already exists"));
+    else {
+      this.$set(this.manageTags, this.addTagText, "added");
+    }
+  }
+
+  editTag() {
+    // TODO
+  }
+
+  // get displayManageTags() {
+  //   console.log(2);
+
+  //   return this.manageTags;
+  // }
+  get getHandleTags() {
+    return Object.entries(this.manageTags).filter(
+      ([, method]) => method !== "deleted"
+    );
+  }
+
+  removeTag(tagValue: string) {
+    if (this.manageTags[tagValue] === "added") delete this.manageTags[tagValue];
+    else this.manageTags[tagValue] = "deleted";
   }
 
   setManageTags() {
-    this.manageTags = this.tags.slice();
+    this.manageTags = Object.fromEntries(
+      this.tags.map(({ value }) => [value, "no change"])
+    );
   }
 
   updateImg(t: Event) {
@@ -348,7 +376,18 @@ export default class About extends Mixins(ShowErrorMixin, BadWordsMixin) {
   }
 
   handleManageTags() {
-    // this.$store.dispatch()
+    for (const [value, method] of Object.entries(this.manageTags)) {
+      if (method === "added") {
+        this.$store.dispatch("tag/addTag", value);
+      } else if (method === "deleted") {
+        this.$store.dispatch("tag/deleteTag", this.tagId(value));
+      } else if (method === "modified") {
+        this.$store.dispatch("tag/updateTag", {
+          id: this.tagId(value),
+          value
+        } as Tag);
+      }
+    }
   }
 
   handleActivate(tag: string) {

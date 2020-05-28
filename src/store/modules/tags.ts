@@ -33,10 +33,18 @@ export const tag = {
         .doc()
         .set({ value })
     ),
+    deleteTag: firestoreAction((_context, id: string) =>
+      db
+        .collection("tags")
+        .doc(id)
+        .delete()
+    ),
     // TODO
-    updateTag: firestoreAction((_context, tags: Array<Tag>) => {
-      const ref = db.collection("tags");
-      tags.forEach(({ id }) => ref.doc(id));
-    })
+    updateTag: firestoreAction((_context, { id, value }: Tag) =>
+      db
+        .collection("tags")
+        .doc(id)
+        .update({ value })
+    )
   }
 };

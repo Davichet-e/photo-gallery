@@ -165,14 +165,13 @@ export default class Search extends Mixins(ShowErrorMixin) {
   publicImages: Array<Image> = [];
   loaded = 0;
   active = "photos";
-  imgsSrc!: Record<string, string>;
+  imgsSrc: Record<string, string> = {};
 
   handleActive(id: string) {
     this.active = id;
   }
 
   created() {
-    this.imgsSrc = {};
     this.$store
       .dispatch("image/bindPublicImagesRef")
       .then(images => {

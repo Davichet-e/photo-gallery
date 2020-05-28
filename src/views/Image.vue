@@ -299,6 +299,7 @@ export default class ImageDetails extends Mixins(
   loaded = false;
   itFollows = false;
   imageTags: Array<Tag> = [];
+  copyImageTags: Array<Tag> = [];
   editing = false;
   tagsToAdd: Array<Tag> = [];
   searchTextInput = "";
@@ -319,16 +320,23 @@ export default class ImageDetails extends Mixins(
   async created() {
     const image = this.getImageById(this.photoId);
     if (!image) {
-      this.image = (await this.$store
-        .dispatch("image/bindImageById", this.photoId)
-        .catch(this.showError)) as Image;
+      try {
+        this.image = (await this.$store
+          .dispatch("image/bindImageById", this.photoId)
+          .catch(this.showError)) as Image;
+      } catch (e) {
+        console.log(e);
+        this.image = image;
+      }
     } else {
       this.image = image;
     }
     this.visibilitySwitch = this.image.public;
     this.imageTitle = this.image.title;
     this.imageDescription = this.image.description;
-    this.imageTags = this.image.tags;
+
+    this.copyImageTags = this.image.tags.filter(tag => tag);
+    this.imageTags = this.copyImageTags;
 
     this.likes = this.image.likes;
     this.dislikes = this.image.dislikes;
@@ -440,7 +448,7 @@ export default class ImageDetails extends Mixins(
 
   get chooseTags() {
     // FIXME
-    return this.editing ? this.imageTags : this.image?.tags;
+    return this.editing ? this.imageTags : this.copyImageTags;
   }
 
   editPhoto() {
@@ -448,8 +456,8 @@ export default class ImageDetails extends Mixins(
     this.stateEditTitle = null;
     this.stateEditDescription = null;
     if (this.image) {
-      this.tagsToAdd = [...this.image.tags];
-      this.imageTags = [...this.image.tags];
+      this.tagsToAdd = [...this.copyImageTags];
+      this.imageTags = [...this.copyImageTags];
     }
   }
 

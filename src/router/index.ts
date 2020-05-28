@@ -3,6 +3,7 @@ import VueRouter, { Route } from "vue-router";
 import Search from "../views/Search.vue";
 import store from "@/store/index";
 import "firebase/auth";
+
 Vue.use(VueRouter);
 
 const routes = [
@@ -51,12 +52,14 @@ const routes = [
     path: "/login",
     name: "LogIn",
     props: { route: "login" },
+    meta: { requiresGuest: true },
     component: () => import(/* webpackChunkName: "login" */ "../views/Auth.vue")
   },
   {
     path: "/signup",
     name: "SignUp",
     props: { route: "sign up" },
+    meta: { requiresGuest: true },
     component: () =>
       import(/* webpackChunkName: "signup" */ "../views/Auth.vue")
   },
