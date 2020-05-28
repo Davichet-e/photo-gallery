@@ -1,5 +1,7 @@
 # photo-gallery
 
+[![Netlify Status](https://api.netlify.com/api/v1/badges/2f7df22d-fd2c-4a1f-9fea-a5b0d36fd849/deploy-status)](https://app.netlify.com/sites/photos-sea/deploys)
+
 ## Project setup
 ```
 npm install
