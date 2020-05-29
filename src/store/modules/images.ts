@@ -6,6 +6,8 @@ import "firebase/storage";
 import { db } from "@/firebase";
 import { User } from "./users";
 import { Tag } from "./tags";
+import { Module } from "vuex";
+import { State } from "..";
 
 export type FirestoreRef = firestore.DocumentReference<firestore.DocumentData>;
 
@@ -43,7 +45,7 @@ export function sortImagesByPopularity(images: Array<Image>) {
   return images.slice().sort(orderImagesPopularity);
 }
 
-export const image = {
+export const image: Module<ImageState, State> = {
   namespaced: true,
 
   state: {
@@ -83,9 +85,9 @@ export const image = {
         .child(id)
         .getDownloadURL(),
 
-    getImagesURL(state: ImageState) {
+    getImagesURL(state: ImageState, { getImageURL }) {
       return state.images.map(({ id }) => ({
-        id: this.getImageURL()(id)
+        id: getImageURL()(id)
       }));
     },
 

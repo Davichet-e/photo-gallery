@@ -4,6 +4,7 @@ import "firebase/auth";
 import { Module } from "vuex";
 import { User } from "./users";
 import { db } from "@/firebase";
+import { State } from "..";
 
 export interface AuthState {
   authUser: User | null;
@@ -15,7 +16,7 @@ export interface AuthUser {
   password: string;
 }
 
-export const auth: Module<AuthState, unknown> = {
+export const auth: Module<AuthState, State> = {
   namespaced: true,
 
   state: {

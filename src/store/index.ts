@@ -10,10 +10,10 @@ import { tag, TagState } from "./modules/tags";
 Vue.use(Vuex);
 
 export interface State {
-  users: UserState;
-  images: ImageState;
+  user: UserState;
+  image: ImageState;
   auth: AuthState;
-  tags: TagState;
+  tag: TagState;
 }
 
 export default new Vuex.Store({

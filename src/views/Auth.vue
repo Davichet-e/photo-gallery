@@ -31,6 +31,20 @@
             <b-icon-at></b-icon-at>
           </b-input-group-append>
         </b-input-group>
+        <b-input-group class="mb-4" v-if="route === 'sign up'">
+          <b-form-input
+            class="not-chekbox-input"
+            v-model="form.phoneNumber"
+            type="tel"
+            placeholder="Phone number"
+            pattern="[0-9]{9}"
+            required
+          ></b-form-input>
+
+          <b-input-group-append is-text>
+            <b-icon-phone></b-icon-phone>
+          </b-input-group-append>
+        </b-input-group>
 
         <a class="password-reset" v-if="route === 'login'" href="#">
           Forgot your password?

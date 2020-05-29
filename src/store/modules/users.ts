@@ -3,6 +3,8 @@ import "firebase/firestore";
 
 import { db } from "@/firebase";
 import { firestore } from "firebase/app";
+import { Module } from "vuex";
+import { State } from "..";
 
 export interface User {
   id: string;
@@ -20,7 +22,7 @@ export interface UserState {
 export const orderUsersPopularity = (a: User, b: User) =>
   b.followers.length - a.followers.length;
 
-export const user = {
+export const user: Module<UserState, State> = {
   namespaced: true,
 
   state: {
@@ -29,8 +31,17 @@ export const user = {
   },
 
   getters: {
-    getUsers(state: UserState) {
-      return state.users;
+    getUserScore(_state, _getters, { image }: State) {
+      return (id: string) => {
+        const votes = image.images
+          .filter(
+            // For unknown reasons, the author is a string with the shape users/{id}
+            ({ author }) => ((author as unknown) as string).split("/")[1] === id
+          )
+          .map(({ likes, dislikes }) => likes.length - dislikes.length);
+
+        return votes.reduce((prev, curr) => prev + curr, 0) / votes.length || 0;
+      };
     },
     getUserById(state: UserState) {
       return (userId: string) => state.users.find(({ id }) => id === userId);

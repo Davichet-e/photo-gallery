@@ -2,6 +2,8 @@ import { vuexfireMutations, firestoreAction } from "vuexfire";
 import "firebase/firestore";
 
 import { db } from "@/firebase";
+import { State } from "..";
+import { Module } from "vuex";
 
 export interface Tag {
   id: string;
@@ -12,7 +14,7 @@ export interface TagState {
   tags: Array<Tag>;
 }
 
-export const tag = {
+export const tag: Module<TagState, State> = {
   namespaced: true,
 
   state: {

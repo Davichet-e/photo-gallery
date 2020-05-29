@@ -115,7 +115,13 @@
           >
             <div class="card-img-overlay d-flex flex-column">
               <div class="mt-auto">
-                {{ element.followers ? element.followers.lenght : 0 }} followers
+                Score:
+                {{
+                  element.followers
+                    ? `${element.score}\n${element.followers.length}`
+                    : 0
+                }}
+                followers
               </div>
             </div>
           </b-card>
@@ -145,13 +151,13 @@ Component.registerHooks(["beforeRouteUpdate"]);
 @Component({
   computed: {
     ...mapState("auth", ["authUser"]),
-    ...mapState("user", ["users"]),
-    ...mapGetters("image", ["getImageURL", "getPublicImagesWithTag"])
+    ...mapGetters("image", ["getImageURL", "getPublicImagesWithTag"]),
+    ...mapGetters("user", ["getUserScore"])
   }
 })
 export default class Search extends Mixins(ShowToastMixin) {
-  public users!: Array<User>;
   public authUser!: User | null;
+  public getUserScore!: (id: string) => number;
   public getImageURL!: (id: string) => Promise<string>;
   public getPublicImagesWithTag!: (
     images: Image[],
@@ -161,6 +167,7 @@ export default class Search extends Mixins(ShowToastMixin) {
   @Prop({ default: "recents", type: String }) sortingBy!: string;
   @Prop({ required: false, type: String }) searchTag!: string;
 
+  users: Array<User> = [];
   images: Array<Image> = [];
   publicImages: Array<Image> = [];
   loaded = 0;
@@ -197,7 +204,17 @@ export default class Search extends Mixins(ShowToastMixin) {
         });
       })
       .catch(this.fetchingError);
-    this.$store.dispatch("user/bindUsersRef").catch(this.fetchingError);
+    this.$store
+      .dispatch("user/bindUsersRef")
+      .then(
+        users =>
+          (this.users = users.map((user: User) => ({
+            ...user,
+            id: user.id,
+            score: this.getUserScore(user.id).toFixed(2)
+          })))
+      )
+      .catch(this.fetchingError);
   }
 
   beforeRouteUpdate(to: Route, from: Route, next: NavigationGuardNext<Vue>) {

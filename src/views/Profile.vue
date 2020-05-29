@@ -3,28 +3,24 @@
     <div id="profile">
       <h1 class="username">{{ getUser.username }}</h1>
       <p class="description">{{ data.description }}</p>
-      <b-icon-people-circle
-        variant="dark"
-        class="h1"
-        scale="2"
-      ></b-icon-people-circle>
+      <b-icon-people> variant="dark" class="h1" scale="2" ></b-icon-people>
       <b-row class="w-100 mt-auto">
         <b-col></b-col>
         <b-col class="d-flex justify-content-center">
           <div class="mx-3" v-b-tooltip.hover="'Images uploaded'">
             <b-icon-card-image class="mr-1"></b-icon-card-image>
             <!-- TODO -->
-            <small>{{ 50 }}</small>
+            <small>{{ numberOfPhotos }}</small>
           </div>
 
           <div class="mx-3" v-b-tooltip.hover="'Downloads'">
             <b-icon-download class="mr-1"></b-icon-download>
-            <small>{{ data.downloads }}</small>
+            <small>{{ 0 }}</small>
           </div>
 
           <div class="mx-3" v-b-tooltip.hover="'Comments'">
             <b-icon-chat-dots-fill class="mr-1"></b-icon-chat-dots-fill>
-            <small>{{ data.comments }}</small>
+            <small>{{ "unset" }}</small>
           </div>
 
           <div class="mx-3" v-b-tooltip.hover="'Followers'">
@@ -146,6 +142,10 @@ export default class Profile extends Mixins(ShowToastMixin) {
 
   get getUser() {
     return this.user ?? { followers: [] };
+  }
+
+  get numberOfPhotos() {
+    return this.images?.length;
   }
 
   updateImg(t: Event) {

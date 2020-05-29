@@ -263,11 +263,7 @@ import { BvModalEvent } from "bootstrap-vue";
     ...mapState("auth", ["authUser"]),
     ...mapState("tag", ["tags"]),
     ...mapState("image", ["images"]),
-    ...mapGetters("image", [
-      "getImagesOfUser",
-      "getImageURL",
-      "numberOfImagesOfUser"
-    ]),
+    ...mapGetters("image", ["getImagesOfUser", "getImageURL"]),
     ...mapGetters("auth", ["userReference"]),
     ...mapGetters("user", ["usersFollowedBy"])
   }
@@ -284,7 +280,6 @@ export default class About extends Mixins(ShowToastMixin, BadWordsMixin) {
   public images!: Array<Image>;
   public getImagesOfUser!: (id: string) => Array<Image>;
   public getImageURL!: (id: string) => Promise<string>;
-  public numberOfImagesOfUser!: (id: string) => number;
   public usersFollowedBy!: (id: string) => Array<User>;
 
   loaded = 0;
@@ -488,7 +483,7 @@ export default class About extends Mixins(ShowToastMixin, BadWordsMixin) {
         this.tagsSelected[id] = false;
       }
     }
-    if (this.numberOfImagesOfUser(this.authUser.id) <= 50) {
+    if (this.images.length < 50) {
       this.$store
         .dispatch("image/addPhoto", {
           image: {
