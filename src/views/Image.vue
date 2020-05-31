@@ -73,15 +73,8 @@
           <h5 class="golden-title">
             {{ imageAuthor.username }} / {{ photosUploaded }} photos
           </h5>
-          <template v-if="authUser && imageAuthor.id !== authUser.id">
-            <b-button
-              size="sm"
-              class="rounded-pill mx-2"
-              :variant="itFollows ? 'info' : 'dark'"
-              @click="handleFollow"
-            >
-              Follow{{ itFollows ? "ed" : "" }}
-            </b-button>
+          <template v-if="!authUser || imageAuthor.id !== authUser.id">
+            <follow-button :author="imageAuthor" />
             <b-button size="sm" class="rounded-pill mx-2" variant="success"
               >Donate</b-button
             >
@@ -270,8 +263,10 @@ import { User } from "../store/modules/users";
 import { Tag } from "../store/modules/tags";
 import { ShowToastMixin } from "../mixins/showToast";
 import { BadWordsMixin } from "../mixins/badWords";
+import FollowButton from "@/components/FollowButton.vue";
 
 @Component({
+  components: { FollowButton },
   computed: {
     ...mapState("auth", ["authUser"]),
     ...mapState("image", ["images", "actualImage"]),
@@ -338,9 +333,9 @@ export default class ImageDetails extends Mixins(
     if (this.authUser) {
       if (this.likes.includes(this.authUser.id)) {
         this.selected = "likes";
-      } else if (this.dislikes.includes(this.authUser.id))
+      } else if (this.dislikes.includes(this.authUser.id)) {
         this.selected = "dislikes";
-
+      }
       this.itFollows = this.isBeingFollowed(
         this.image.author as User,
         this.authUser.id

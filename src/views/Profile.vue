@@ -32,7 +32,7 @@
           <b-button pill size="sm" variant="success" class="ml-2">
             Donate
           </b-button>
-          <b-button pill size="sm" variant="info">Follow</b-button>
+          <follow-button :author="user" />
         </b-col>
       </b-row>
     </div>
@@ -93,15 +93,20 @@ import { User } from "../store/modules/users";
 import { Image, sortImagesByPopularity } from "../store/modules/images";
 import { ShowToastMixin } from "../mixins/showToast";
 
+import FollowButton from "@/components/FollowButton.vue";
+
 @Component({
+  components: { FollowButton },
   computed: {
+    ...mapState("auth", ["authUser"]),
     ...mapState("user", ["actualUser", "users"]),
     ...mapState("image", ["images"]),
-    ...mapGetters("user", ["getUserById"]),
+    ...mapGetters("user", ["getUserById", "isBeingFollowed"]),
     ...mapGetters("image", ["getImagesOfUser", "getImageURL"])
   }
 })
 export default class Profile extends Mixins(ShowToastMixin) {
+  public authUser!: User | null;
   public actualUser!: User | null;
   public users!: Array<User>;
   public images!: Array<Image>;
@@ -110,6 +115,7 @@ export default class Profile extends Mixins(ShowToastMixin) {
   public getUserById!: (id: string) => User | undefined;
   @Prop({ required: true, type: String }) userId!: string;
 
+  itFollows = false;
   user: User | null = null;
   imgsSrc: Record<string, string> = {};
   loaded = 0;
@@ -124,6 +130,7 @@ export default class Profile extends Mixins(ShowToastMixin) {
         .dispatch("user/bindUserById", this.userId)
         .catch(this.fetchingError)) as User;
     } else this.user = user;
+
     this.$store
       .dispatch("image/bindPublicImagesOfUser", this.userId)
       .then(() => {
