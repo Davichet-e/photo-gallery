@@ -24,7 +24,7 @@ import { User } from "../store/modules/users";
 export default class FollowButton extends Mixins(ShowToastMixin) {
   public authUser!: User | null;
   public isBeingFollowed!: (user: User, followingId: string) => boolean;
-  @Prop({ type: Object }) author!: User;
+  @Prop({ type: Object, required: true }) author!: User;
 
   itFollows = false;
 
@@ -45,7 +45,6 @@ export default class FollowButton extends Mixins(ShowToastMixin) {
     if (this.userIsLogged) {
       this.$store
         .dispatch("user/followUser", {
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           id: this.author.id,
           followingId: this.authUserId,
           method: this.itFollows ? "unfollow" : "follow"

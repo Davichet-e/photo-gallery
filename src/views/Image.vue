@@ -464,27 +464,6 @@ export default class ImageDetails extends Mixins(
       );
   }
 
-  handleFollow() {
-    if (this.authUser) {
-      this.$store
-        .dispatch("user/followUser", {
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          id: this.image!.author.id,
-          followingId: this.authUser.id,
-          method: this.itFollows ? "unfollow" : "follow"
-        })
-        .then(() =>
-          this.itFollows ? (this.itFollows = false) : (this.itFollows = true)
-        )
-        .catch(this.fetchingError);
-    } else {
-      this.showToast(
-        "You must be logged in to follow another user",
-        "Auth error"
-      );
-    }
-  }
-
   cancelEdit() {
     this.editing = false;
     if (this.image) {

@@ -115,13 +115,10 @@
           class="my-2"
           :state="stateDescription"
           placeholder="Description"
-          aria-invalid="description-badword-feedback"
+          aria-invalid="title-badword-feedback"
           invalid-feedback="Bad words are not allowed"
           v-model="description"
         ></b-textarea>
-        <b-form-invalid-feedback id="description-badword-feedback">
-          Badwords not allowed
-        </b-form-invalid-feedback>
         <b-file required class="my-4" v-model="file" accept="image/*"></b-file>
       </b-form>
       <p class="mb-4 constraints-text">
@@ -138,9 +135,8 @@
         <b-badge
           v-for="{ value, id } of tags"
           :key="id"
-          @click="handleActivate(id)"
-          class="mx-2 mt-2"
-          :variant="tagsSelected[id] ? 'success' : 'secondary'"
+          @click="handleActivate($event, id)"
+          class="mx-2 mt-2 upload-tag"
           >{{ value }}</b-badge
         >
       </div>
@@ -467,11 +463,14 @@ export default class About extends Mixins(ShowToastMixin, BadWordsMixin) {
     }
   }
 
-  handleActivate(tag: string) {
-    if (this.tagsSelected[tag]) {
-      this.tagsSelected[tag] = false;
+  handleActivate(event: Event, id: string) {
+    const element = event.target as HTMLSpanElement;
+    if (this.tagsSelected[id]) {
+      this.tagsSelected[id] = false;
+      element.style.backgroundColor = "#6c757d";
     } else {
-      this.tagsSelected[tag] = true;
+      this.tagsSelected[id] = true;
+      element.style.backgroundColor = "#28a745";
     }
   }
 
@@ -550,6 +549,10 @@ export default class About extends Mixins(ShowToastMixin, BadWordsMixin) {
   grid-template-columns: repeat(6, 1fr);
   grid-gap: 1rem;
   grid-auto-flow: row dense;
+}
+
+.upload-tag {
+  cursor: pointer;
 }
 
 .users-container article {
