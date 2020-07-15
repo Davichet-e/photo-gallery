@@ -59,6 +59,20 @@
           ></b-form-input>
 
           <b-input-group-append is-text>
+            <b-icon-lock></b-icon-lock>
+          </b-input-group-append>
+        </b-input-group>
+
+        <b-input-group class="mb-4" v-if="route === 'sign up'">
+          <b-form-input
+            class="not-chekbox-input"
+            v-model="form.repeatPassword"
+            type="password"
+            placeholder="Repeat password"
+            required
+          ></b-form-input>
+
+          <b-input-group-append is-text>
             <b-icon-lock-fill></b-icon-lock-fill>
           </b-input-group-append>
         </b-input-group>
@@ -114,7 +128,7 @@ export default class Auth extends Mixins(ShowToastMixin) {
 
   isClicked = false;
 
-  form = { email: "", username: "", password: "" };
+  form = { email: "", username: "", password: "", repeatPassword: "" };
 
   routeGoogleImage: string = require("@/assets/sign-in-google/btn_google_signin_dark_normal_web.png");
 
@@ -126,22 +140,26 @@ export default class Auth extends Mixins(ShowToastMixin) {
   }
 
   onSubmit() {
-    const action =
-      this.route === "login"
-        ? "signInWithEmailAndPassword"
-        : "registerUserWithEmailAndPassword";
-    this.$store
-      .dispatch("auth/" + action, {
-        email: this.form.email,
-        username: this.form.username,
-        password: this.form.password
-      } as AuthUser)
-      .then(() => this.$router.push("/"))
-      .catch(({ message }) => this.showToast(message));
+    if (this.form.password !== this.form.repeatPassword)
+      this.showToast("Passwords must coincide", "Password error");
+    else {
+      const action =
+        this.route === "login"
+          ? "signInWithEmailAndPassword"
+          : "registerUserWithEmailAndPassword";
+      this.$store
+        .dispatch("auth/" + action, {
+          email: this.form.email,
+          username: this.form.username,
+          password: this.form.password
+        } as AuthUser)
+        .then(() => this.$router.push("/"))
+        .catch(({ message }) => this.showToast(message));
+    }
   }
 
   changeAuthType() {
-    this.form = { email: "", username: "", password: "" };
+    this.form = { email: "", username: "", password: "", repeatPassword: "" };
     this.$router.push(this.route === "login" ? "/signup" : "/login");
   }
 
