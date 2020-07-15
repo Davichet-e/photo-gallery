@@ -1,6 +1,6 @@
 # photo-gallery
 
-[![Netlify Status](https://photos-sea.netlify.app/)
+[![Netlify Status](https://photos-sea.netlify.app/)]
 
 ## Project setup
 ```
