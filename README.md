@@ -2,25 +2,24 @@
 
 [![Netlify Status](https://api.netlify.com/api/v1/badges/2f7df22d-fd2c-4a1f-9fea-a5b0d36fd849/deploy-status)](https://photos-sea.netlify.app/)
 
-## Project setup
-```
-npm install
-```
+## Description
+This is a simple photo gallery made for one of my university classes in 2020.
+You can upload, vote, or remove photos, add comments, login/sign-up with Google or with your email/password, search user/photos...
 
-### Compiles and hot-reloads for development
-```
-npm run serve
-```
+Used technologies:
+- Vue (with TypeScript), Vuex.
+- Firebase (Auth, Firestore, Storage)
+- Boostrap
 
-### Compiles and minifies for production
-```
-npm run build
-```
+## Screenshots
+Home page:
+![Home page](./img/home-page.png)
 
-### Lints and fixes files
-```
-npm run lint
-```
+Profile:
+![Profile](./img/profile.png)
 
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+Photo details:
+![Photo detail](./img/photo-details.png)
+
+Login:
+![Login](./img/login.png)
